@@ -1,0 +1,19 @@
+{
+  "name": "workspace",
+  "version": "0.0.0",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "preinstall": "node scripts/ensure-pnpm.cjs",
+    "dev": "pnpm --parallel --filter @workspace/api-server --filter @workspace/anupam-intelligence-systems run dev",
+    "build": "pnpm run typecheck && pnpm -r --if-present run build",
+    "start": "pnpm --filter @workspace/api-server run start",
+    "typecheck:libs": "tsc --build",
+    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --if-present run typecheck"
+  },
+  "private": true,
+  "devDependencies": {
+    "typescript": "~5.9.2",
+    "prettier": "^3.8.1"
+  }
+}

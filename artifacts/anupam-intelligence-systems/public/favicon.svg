@@ -1,0 +1,21 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="shell" x1="18" y1="20" x2="164" y2="162" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22d3ee"/>
+      <stop offset="0.48" stop-color="#2dd4bf"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+    <radialGradient id="core" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(91 88) rotate(90) scale(64)">
+      <stop stop-color="#2dd4bf" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#061310" stop-opacity="0.12"/>
+    </radialGradient>
+  </defs>
+  <rect width="180" height="180" rx="42" fill="#061310"/>
+  <rect x="10" y="10" width="160" height="160" rx="36" fill="url(#core)" stroke="url(#shell)" stroke-width="8"/>
+  <path d="M54 115V68C54 59.7 60.7 53 69 53H126" stroke="url(#shell)" stroke-width="12" stroke-linecap="round"/>
+  <path d="M126 65V112C126 120.3 119.3 127 111 127H54" stroke="url(#shell)" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="54" cy="115" r="10" fill="#f59e0b"/>
+  <circle cx="126" cy="65" r="10" fill="#22d3ee"/>
+  <circle cx="90" cy="90" r="15" fill="#2dd4bf"/>
+  <path d="M82 91H98M90 83V99" stroke="#061310" stroke-width="5" stroke-linecap="round"/>
+</svg>
