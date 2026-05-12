@@ -14,7 +14,7 @@ const RADIUS = 200;
 
 export default function CapabilityGraph() {
   return (
-    <div className="glass relative mt-20 overflow-hidden rounded-[1.5rem] md:rounded-[2rem] p-10">
+    <div className="glass relative mt-20 overflow-hidden rounded-[1.5rem] p-5 md:rounded-[2rem] md:p-10">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 pointer-events-none" />
 
       <div className="relative z-10">
@@ -22,18 +22,17 @@ export default function CapabilityGraph() {
           <p className="text-xs uppercase tracking-[0.3em] text-primary">
             INTELLIGENCE NETWORK
           </p>
-          <h3 className="mt-4 font-display text-3xl font-bold text-white">
+          <h3 className="mt-4 font-display text-2xl font-bold text-white sm:text-3xl">
             Connected Capability Ecosystem
           </h3>
         </div>
 
-        <div className="overflow-x-auto">
-          <div className="relative mx-auto" style={{ width: W, height: H }}>
+        <div className="overflow-hidden">
+          <div className="relative mx-auto aspect-[6/5] w-full max-w-[600px]">
             {/* SVG lines */}
             <svg
-              className="absolute inset-0 pointer-events-none"
-              width={W}
-              height={H}
+              className="absolute inset-0 h-full w-full pointer-events-none"
+              viewBox={`0 0 ${W} ${H}`}
               aria-hidden="true"
             >
               <defs>
@@ -72,17 +71,10 @@ export default function CapabilityGraph() {
             <motion.div
               animate={{ scale: [1, 1.07, 1] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute z-20 flex items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-center backdrop-blur-xl"
-              style={{
-                width: 148,
-                height: 148,
-                left: CX - 74,
-                top: CY - 74,
-                boxShadow: "0 0 60px rgba(0,245,212,0.12)",
-              }}
+              className="absolute left-1/2 top-1/2 z-20 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-center backdrop-blur-xl shadow-[0_0_60px_rgba(0,245,212,0.12)] sm:h-[148px] sm:w-[148px]"
             >
               <div>
-                <p className="font-display text-base font-bold text-primary leading-tight">
+                <p className="font-display text-xs font-bold leading-tight text-primary sm:text-base">
                   Autonomous
                   <br />
                   AI Systems
@@ -103,8 +95,8 @@ export default function CapabilityGraph() {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.08, type: "spring", stiffness: 200 }}
                   whileHover={{ scale: 1.1 }}
-                  className="absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10 bg-white/[0.05] px-4 py-2.5 text-xs font-medium text-muted-foreground backdrop-blur-xl cursor-default transition-colors duration-200 hover:border-primary/30 hover:text-white whitespace-nowrap"
-                  style={{ left: x, top: y }}
+                  className="absolute z-10 -translate-x-1/2 -translate-y-1/2 cursor-default whitespace-nowrap rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1.5 text-[10px] font-medium text-muted-foreground backdrop-blur-xl transition-colors duration-200 hover:border-primary/30 hover:text-white sm:px-4 sm:py-2.5 sm:text-xs"
+                  style={{ left: `${(x / W) * 100}%`, top: `${(y / H) * 100}%` }}
                 >
                   {node}
                 </motion.div>
