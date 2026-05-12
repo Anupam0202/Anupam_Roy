@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from "react";
 import { CheckCircle, Mail, MessageSquare, Send, ShieldCheck, User } from "lucide-react";
-import { profile } from "@/data/profile";
 import { toast } from "@/hooks/use-toast";
 
 type FormState = "idle" | "submitting" | "success";
@@ -191,7 +190,7 @@ export default function ContactForm() {
             </Field>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs text-white/38">Delivered to {profile.email} through the backend contact API.</p>
+              <p className="text-xs text-white/38">Delivered through the backend contact API with server-side spam protection.</p>
               <button
                 type="submit"
                 disabled={state === "submitting"}

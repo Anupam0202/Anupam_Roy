@@ -93,6 +93,7 @@ Copy `.env.example` to `.env` locally or configure the same values in deployment
 CONTACT_TO_EMAIL=anupam020202@gmail.com
 CONTACT_FROM_EMAIL=Anupam Roy Portfolio <onboarding@resend.dev>
 CONTACT_FALLBACK_FROM_EMAIL=Anupam Roy Portfolio <onboarding@resend.dev>
+RESEND_SANDBOX_TO_EMAIL=
 RESEND_API_KEY=
 GEMINI_API_KEY=
 GEMINI_MODEL=gemini-2.5-flash
@@ -106,6 +107,7 @@ Notes:
 
 - `GEMINI_API_KEY` is optional. Without it, the AI consultant uses offline portfolio intelligence.
 - `RESEND_API_KEY` is required for real email delivery.
+- If the Resend account is still in testing mode, `CONTACT_TO_EMAIL` must be the account owner email, or set `RESEND_SANDBOX_TO_EMAIL` so the API can fall back to the allowed testing recipient.
 - `CONTACT_FROM_EMAIL` should use a sender verified in your Resend account. Until a custom domain is verified, keep the Resend onboarding sender.
 - `CONTACT_FALLBACK_FROM_EMAIL` is used automatically if Resend rejects an unverified custom sender domain.
 - `DATABASE_URL` is optional. Without it, conversations use in-memory runtime storage.
