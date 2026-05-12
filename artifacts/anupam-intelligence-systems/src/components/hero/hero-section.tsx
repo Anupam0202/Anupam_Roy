@@ -110,7 +110,7 @@ export default function HeroSection() {
       <NeuralParticles />
       <GlowOrb />
 
-      <div className="relative z-10 mx-auto flex w-[92%] max-w-7xl flex-col items-center justify-between gap-10 pb-8 pt-28 sm:pt-36 md:pb-36 lg:gap-16 lg:flex-row lg:pb-32">
+      <div className="relative z-10 mx-auto flex w-[92%] max-w-7xl flex-col items-center justify-between gap-10 pb-8 pt-28 sm:pt-36 md:pb-36 lg:gap-12 lg:pb-32 xl:flex-row xl:gap-16">
 
         {/* LEFT — identity */}
         <motion.div
@@ -202,7 +202,7 @@ export default function HeroSection() {
           initial={{ opacity: 0, scale: 0.88 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
-          className="hidden sm:block relative h-[440px] md:h-[500px] w-full max-w-lg flex-shrink-0"
+          className="hidden sm:block relative h-[440px] md:h-[500px] w-full max-w-lg"
           style={{ willChange: "transform" }}
         >
           <LiveOrchestrationCore />

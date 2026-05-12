@@ -48,7 +48,29 @@ export default function EnterpriseFlow() {
         </div>
       </div>
 
-      <div className="overflow-x-auto px-8 py-10">
+      <div className="grid gap-3 px-4 py-6 sm:grid-cols-2 sm:px-6 lg:hidden">
+        {nodes.map((node, index) => (
+          <motion.div
+            key={node.id}
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.35, delay: index * 0.04 }}
+            className={`rounded-2xl border p-4 text-sm ${
+              node.highlight
+                ? "border-primary/35 bg-primary/10 text-primary"
+                : "border-white/10 bg-white/[0.04] text-white/75"
+            }`}
+          >
+            <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-white/35">
+              Step {index + 1}
+            </div>
+            <div className="mt-2 font-medium">{node.label}</div>
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="hidden overflow-hidden px-8 py-10 lg:block">
         <div className="relative mx-auto" style={{ width: 800, height: 460 }}>
           <svg
             className="absolute inset-0 h-full w-full pointer-events-none"
