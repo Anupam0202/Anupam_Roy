@@ -47,6 +47,7 @@ Thumbs.db
 # Local caches
 .cache/
 .local/
+.playwright-cli/
 
 # Environment
 .env

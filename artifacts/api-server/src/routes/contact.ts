@@ -14,6 +14,10 @@ interface ContactBody {
 
 const CONTACT_LIMIT = 3;
 const CONTACT_WINDOW_MS = 10 * 60_000;
+const DEFAULT_FROM_EMAIL = "Anupam Roy Portfolio <onboarding@resend.dev>";
+
+type ResendEmailResult = Awaited<ReturnType<Resend["emails"]["send"]>>;
+type ResendEmailError = NonNullable<ResendEmailResult["error"]>;
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -63,6 +67,11 @@ function validateContact(body: ContactBody) {
   return { name, email, subject, message };
 }
 
+function isSenderDomainError(error: ResendEmailError) {
+  const message = String(error.message ?? "").toLowerCase();
+  return error.statusCode === 403 && (message.includes("domain is not verified") || message.includes("verify your domain"));
+}
+
 router.post("/contact", async (req: Request, res: Response) => {
   const body = req.body as ContactBody;
   const ip = req.ip ?? req.socket.remoteAddress ?? "unknown";
@@ -82,7 +91,8 @@ router.post("/contact", async (req: Request, res: Response) => {
 
   const apiKey = process.env.RESEND_API_KEY;
   const to = process.env.CONTACT_TO_EMAIL ?? "anupam020202@gmail.com";
-  const from = process.env.CONTACT_FROM_EMAIL ?? "Anupam Roy Portfolio <onboarding@resend.dev>";
+  const from = process.env.CONTACT_FROM_EMAIL?.trim() || DEFAULT_FROM_EMAIL;
+  const fallbackFrom = process.env.CONTACT_FALLBACK_FROM_EMAIL?.trim() || DEFAULT_FROM_EMAIL;
 
   if (!apiKey) {
     req.log.warn({ route: "contact" }, "RESEND_API_KEY is missing");
@@ -96,9 +106,9 @@ router.post("/contact", async (req: Request, res: Response) => {
   const safeMessage = escapeHtml(parsed.message).replace(/\n/g, "<br />");
   const resend = new Resend(apiKey);
 
-  try {
-    const { data, error } = await resend.emails.send({
-      from,
+  const sendMessage = (sender: string) =>
+    resend.emails.send({
+      from: sender,
       to,
       replyTo: parsed.email,
       subject: `[Portfolio] ${parsed.subject}`,
@@ -125,9 +135,17 @@ router.post("/contact", async (req: Request, res: Response) => {
       `,
     });
 
+  try {
+    let { data, error } = await sendMessage(from);
+
+    if (error && from !== fallbackFrom && isSenderDomainError(error)) {
+      req.log.warn({ configuredFrom: from, fallbackFrom, reason: error.message }, "Resend sender domain rejected; retrying fallback sender");
+      ({ data, error } = await sendMessage(fallbackFrom));
+    }
+
     if (error) {
       req.log.error({ error }, "Resend contact request failed");
-      return void res.status(502).json({ error: "Email provider rejected the message. Check Resend configuration." });
+      return void res.status(502).json({ error: "Email delivery is temporarily unavailable. Please email Anupam directly." });
     }
 
     res.json({ ok: true, id: data?.id });
