@@ -109,6 +109,19 @@ function isRateLimited(ip: string) {
   return false;
 }
 
+function sendSseFallback(res: Response, message: string) {
+  if (!res.headersSent) {
+    res.status(200);
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+  }
+
+  res.write(`data: ${JSON.stringify({ error: message, mode: "offline" })}\n\n`);
+  res.write(`data: ${JSON.stringify({ done: true, mode: "offline" })}\n\n`);
+  res.end();
+}
+
 function createMemoryMessage(conversationId: number, role: MemoryMessage["role"], content: string): MemoryMessage {
   return {
     id: nextMessageId++,
@@ -299,7 +312,7 @@ router.get("/gemini/conversations/:id/messages", async (req: Request, res: Respo
 router.post("/gemini/conversations/:id/messages", async (req: Request, res: Response) => {
   const ip = req.ip ?? req.socket.remoteAddress ?? "unknown";
   if (isRateLimited(ip)) {
-    return void res.status(429).json({ error: "Assistant rate limit reached. Offline mode can continue in the browser." });
+    return void sendSseFallback(res, "Assistant rate limit reached. Continue with offline portfolio mode.");
   }
 
   const conversationId = Number(req.params.id);
@@ -311,7 +324,7 @@ router.post("/gemini/conversations/:id/messages", async (req: Request, res: Resp
   if (!content) return void res.status(400).json({ error: "Message content is required." });
 
   const client = getGeminiClient();
-  if (!client) return void res.status(503).json({ error: "Gemini API key is not configured. Use offline portfolio mode." });
+  if (!client) return void sendSseFallback(res, "Gemini API key is not configured. Continue with offline portfolio mode.");
 
   const dbUserMessage = dbConversation ? await insertDbMessage(req, conversation.id, "user", content) : null;
   const userMessage = dbUserMessage ?? createMemoryMessage(conversation.id, "user", content);
@@ -357,13 +370,8 @@ router.post("/gemini/conversations/:id/messages", async (req: Request, res: Resp
     res.write(`data: ${JSON.stringify({ done: true, mode: "gemini" })}\n\n`);
     res.end();
   } catch (error) {
-    req.log.error({ error }, "Gemini generation failed");
-    if (!res.headersSent) {
-      res.status(502).json({ error: "Gemini generation failed. Use offline portfolio mode." });
-    } else {
-      res.write(`data: ${JSON.stringify({ error: "Gemini generation failed. Using offline portfolio mode is recommended." })}\n\n`);
-      res.end();
-    }
+    req.log.warn({ error }, "Gemini generation failed; sending offline fallback signal");
+    sendSseFallback(res, "Gemini generation failed. Continue with offline portfolio mode.");
   }
 });
 

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Bot, Send, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -94,27 +95,48 @@ export default function ConsultSystem() {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let full = "";
+    let buffer = "";
+    let streamError = false;
+
+    const consumeEvent = (event: string) => {
+      const lines = event.split("\n");
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        try {
+          const payload = JSON.parse(line.slice(6));
+          if (payload.error) {
+            streamError = true;
+            continue;
+          }
+          if (payload.done) continue;
+          if (payload.content) {
+            full += payload.content;
+            setMessages((prev) => {
+              const next = [...prev];
+              const last = next[next.length - 1];
+              if (last?.streaming) next[next.length - 1] = { ...last, content: full, mode: "gemini" };
+              return next;
+            });
+          }
+        } catch {
+          streamError = true;
+        }
+      }
+    };
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      const lines = decoder.decode(value, { stream: true }).split("\n");
-      for (const line of lines) {
-        if (!line.startsWith("data: ")) continue;
-        const payload = JSON.parse(line.slice(6));
-        if (payload.done) continue;
-        if (payload.content) {
-          full += payload.content;
-          setMessages((prev) => {
-            const next = [...prev];
-            const last = next[next.length - 1];
-            if (last?.streaming) next[next.length - 1] = { ...last, content: full, mode: "gemini" };
-            return next;
-          });
-        }
-      }
+      buffer += decoder.decode(value, { stream: true });
+      const events = buffer.split("\n\n");
+      buffer = events.pop() ?? "";
+      events.filter(Boolean).forEach(consumeEvent);
     }
-    return full.trim().length > 0;
+
+    buffer += decoder.decode();
+    if (buffer.trim()) consumeEvent(buffer);
+
+    return !streamError && full.trim().length > 0;
   }
 
   async function respondOffline(text: string, prependNotice = false) {
@@ -166,6 +188,110 @@ export default function ConsultSystem() {
     setLoading(false);
   }
 
+  const modal = (
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setOpen(false)}
+            className="fixed inset-0 z-[150] bg-black/55 backdrop-blur-sm"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className="fixed inset-x-3 bottom-3 z-[200] flex h-[min(88dvh,720px)] max-h-[calc(100dvh-1.5rem)] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#07110f]/98 shadow-[0_0_80px_rgba(0,0,0,0.85)] backdrop-blur-2xl sm:bottom-8 sm:left-auto sm:right-8 sm:h-[720px] sm:max-h-[calc(100dvh-4rem)] sm:w-[470px]"
+            role="dialog"
+            aria-modal="true"
+            aria-label="AI portfolio consultant"
+          >
+            <div className="flex shrink-0 items-start justify-between border-b border-white/10 p-5 [@media(max-height:520px)]:p-3">
+              <div>
+                <p className="text-xs font-bold uppercase text-primary">Portfolio Concierge</p>
+                <h2 className="mt-1 font-display text-lg font-bold text-white">Ask about Anupam's fit</h2>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Mode: {mode === "checking" ? "checking..." : mode === "gemini" ? "Gemini + offline fallback" : "offline portfolio data"}
+                </p>
+              </div>
+              <button
+                onClick={() => setOpen(false)}
+                className="rounded-full p-2 text-white/55 hover:bg-white/10 hover:text-white"
+                aria-label="Close consultant"
+                type="button"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 [@media(max-height:520px)]:p-3">
+              {messages.map((message, index) => (
+                <div key={index} className={`max-w-[92%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${message.role === "user" ? "ml-auto bg-primary text-black" : "bg-white/[0.05] text-muted-foreground"}`}>
+                  {message.role === "assistant" ? (
+                    <div className="prose prose-sm prose-invert max-w-none">
+                      <ReactMarkdown>{message.content}</ReactMarkdown>
+                      {message.streaming && <span className="ml-1 inline-block h-3 w-0.5 animate-pulse bg-primary" />}
+                    </div>
+                  ) : (
+                    message.content
+                  )}
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div className="shrink-0 border-t border-white/8 p-4 [@media(max-height:520px)]:p-3">
+              <div className="[@media(max-height:520px)]:hidden">
+                <p className="mb-2 text-xs font-semibold uppercase text-white/35">Suggested prompts</p>
+                <div className="mb-3 flex flex-wrap gap-1.5">
+                  {suggestedPrompts.map((prompt) => (
+                    <button
+                      key={prompt}
+                      onClick={() => send(prompt)}
+                      disabled={loading}
+                      className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] text-white/60 hover:border-primary/30 hover:text-white disabled:opacity-40"
+                      type="button"
+                    >
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  ref={inputRef}
+                  value={input}
+                  onChange={(event) => setInput(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && !event.shiftKey) {
+                      event.preventDefault();
+                      send();
+                    }
+                  }}
+                  placeholder="Ask about experience, systems, projects, certifications..."
+                  className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-primary/45"
+                  disabled={loading}
+                />
+                <button
+                  onClick={() => send()}
+                  disabled={loading || !input.trim()}
+                  className="rounded-xl bg-primary px-4 py-3 text-black disabled:opacity-40"
+                  aria-label="Send message"
+                  type="button"
+                >
+                  <Send className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+
   return (
     <>
       <motion.button
@@ -181,97 +307,7 @@ export default function ConsultSystem() {
         <span className="sm:hidden">Consult</span>
       </motion.button>
 
-      <AnimatePresence>
-        {open && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setOpen(false)}
-              className="fixed inset-0 z-[150] bg-black/55 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ opacity: 0, y: 36 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 36 }}
-              className="fixed bottom-0 left-0 right-0 z-[200] flex h-[88dvh] max-h-[88dvh] flex-col overflow-hidden rounded-t-3xl border border-white/10 bg-[#07110f]/98 shadow-[0_0_80px_rgba(0,0,0,0.85)] backdrop-blur-2xl sm:bottom-8 sm:left-auto sm:right-8 sm:h-[720px] sm:max-h-[calc(100dvh-4rem)] sm:w-[470px] sm:rounded-3xl"
-              role="dialog"
-              aria-modal="true"
-              aria-label="AI portfolio consultant"
-            >
-              <div className="flex items-start justify-between border-b border-white/10 p-5">
-                <div>
-                  <p className="text-xs font-bold uppercase text-primary">Portfolio Concierge</p>
-                  <h2 className="mt-1 font-display text-lg font-bold text-white">Ask about Anupam's fit</h2>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    Mode: {mode === "checking" ? "checking..." : mode === "gemini" ? "Gemini + offline fallback" : "offline portfolio data"}
-                  </p>
-                </div>
-                <button onClick={() => setOpen(false)} className="rounded-full p-2 text-white/55 hover:bg-white/10 hover:text-white" aria-label="Close consultant">
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              <div className="flex-1 space-y-4 overflow-y-auto p-4">
-                {messages.map((message, index) => (
-                  <div key={index} className={`max-w-[92%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${message.role === "user" ? "ml-auto bg-primary text-black" : "bg-white/[0.05] text-muted-foreground"}`}>
-                    {message.role === "assistant" ? (
-                      <div className="prose prose-sm prose-invert max-w-none">
-                        <ReactMarkdown>{message.content}</ReactMarkdown>
-                        {message.streaming && <span className="ml-1 inline-block h-3 w-0.5 animate-pulse bg-primary" />}
-                      </div>
-                    ) : (
-                      message.content
-                    )}
-                  </div>
-                ))}
-                <div ref={messagesEndRef} />
-              </div>
-
-              <div className="border-t border-white/8 p-4">
-                <p className="mb-2 text-xs font-semibold uppercase text-white/35">Suggested prompts</p>
-                <div className="mb-3 flex flex-wrap gap-1.5">
-                  {suggestedPrompts.map((prompt) => (
-                    <button
-                      key={prompt}
-                      onClick={() => send(prompt)}
-                      disabled={loading}
-                      className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] text-white/60 hover:border-primary/30 hover:text-white disabled:opacity-40"
-                    >
-                      {prompt}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    ref={inputRef}
-                    value={input}
-                    onChange={(event) => setInput(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" && !event.shiftKey) {
-                        event.preventDefault();
-                        send();
-                      }
-                    }}
-                    placeholder="Ask about experience, systems, projects, certifications..."
-                    className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-primary/45"
-                    disabled={loading}
-                  />
-                  <button
-                    onClick={() => send()}
-                    disabled={loading || !input.trim()}
-                    className="rounded-xl bg-primary px-4 py-3 text-black disabled:opacity-40"
-                    aria-label="Send message"
-                  >
-                    <Send className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      {createPortal(modal, document.body)}
     </>
   );
 }
