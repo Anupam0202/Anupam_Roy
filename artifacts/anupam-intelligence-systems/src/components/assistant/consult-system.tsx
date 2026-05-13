@@ -20,6 +20,39 @@ async function streamOffline(text: string, onChunk: (value: string) => void) {
   }
 }
 
+function PromptRail({
+  loading,
+  onSelect,
+}: {
+  loading: boolean;
+  onSelect: (prompt: string) => void;
+}) {
+  return (
+    <div
+      className="rounded-2xl border border-white/8 bg-white/[0.025] p-3 [@media(max-height:520px)]:hidden"
+      data-consult-prompts="true"
+    >
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <p className="text-[10px] font-semibold uppercase text-white/35">Suggested prompts</p>
+        <p className="hidden text-[10px] text-white/30 sm:block">Tap one to start</p>
+      </div>
+      <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {suggestedPrompts.map((prompt) => (
+          <button
+            key={prompt}
+            onClick={() => onSelect(prompt)}
+            disabled={loading}
+            className="max-w-[80vw] shrink-0 rounded-full border border-white/10 bg-white/[0.035] px-3 py-2 text-left text-[11px] leading-snug text-white/65 transition hover:border-primary/35 hover:text-white disabled:opacity-40 sm:max-w-[260px]"
+            type="button"
+          >
+            {prompt}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function ConsultSystem() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -31,11 +64,12 @@ export default function ConsultSystem() {
       role: "assistant",
       mode: "offline",
       content:
-        "Portfolio concierge ready. I can summarize Anupam's enterprise GenAI work, NexusRAG architecture, certifications, projects, achievements, skills, and hiring fit. If Gemini is configured, I will use it; otherwise I answer from structured offline portfolio data.",
+        "Portfolio concierge ready. Ask about Anupam's hiring fit, enterprise GenAI work, NexusRAG, certifications, projects, skills, or achievements.",
     },
   ]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const hasUserMessage = messages.some((message) => message.role === "user");
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -204,15 +238,15 @@ export default function ConsultSystem() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="fixed inset-x-3 bottom-3 z-[200] flex h-[min(88dvh,720px)] max-h-[calc(100dvh-1.5rem)] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#07110f]/98 shadow-[0_0_80px_rgba(0,0,0,0.85)] backdrop-blur-2xl sm:bottom-8 sm:left-auto sm:right-8 sm:h-[720px] sm:max-h-[calc(100dvh-4rem)] sm:w-[470px]"
+            className="fixed inset-x-3 bottom-3 top-3 z-[200] flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#07110f]/98 shadow-[0_0_80px_rgba(0,0,0,0.85)] backdrop-blur-2xl sm:bottom-8 sm:left-auto sm:right-8 sm:top-auto sm:h-[720px] sm:max-h-[calc(100dvh-4rem)] sm:w-[470px]"
             role="dialog"
             aria-modal="true"
             aria-label="AI portfolio consultant"
           >
-            <div className="flex shrink-0 items-start justify-between border-b border-white/10 p-5 [@media(max-height:520px)]:p-3">
+            <div className="flex shrink-0 items-start justify-between border-b border-white/10 p-4 sm:p-5 [@media(max-height:520px)]:p-3">
               <div>
                 <p className="text-xs font-bold uppercase text-primary">Portfolio Concierge</p>
-                <h2 className="mt-1 font-display text-lg font-bold text-white">Ask about Anupam's fit</h2>
+                <h2 className="mt-1 font-display text-base font-bold text-white sm:text-lg">Ask about Anupam's fit</h2>
                 <p className="mt-2 text-xs text-muted-foreground">
                   Mode: {mode === "checking" ? "checking..." : mode === "gemini" ? "Gemini + offline fallback" : "offline portfolio data"}
                 </p>
@@ -227,9 +261,9 @@ export default function ConsultSystem() {
               </button>
             </div>
 
-            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 [@media(max-height:520px)]:p-3">
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 [@media(max-height:520px)]:p-3" data-consult-messages="true">
               {messages.map((message, index) => (
-                <div key={index} className={`max-w-[92%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${message.role === "user" ? "ml-auto bg-primary text-black" : "bg-white/[0.05] text-muted-foreground"}`}>
+                <div key={index} className={`max-w-[92%] overflow-hidden break-words rounded-2xl px-4 py-3 text-sm leading-relaxed ${message.role === "user" ? "ml-auto bg-primary text-black" : "bg-white/[0.05] text-muted-foreground"}`}>
                   {message.role === "assistant" ? (
                     <div className="prose prose-sm prose-invert max-w-none">
                       <ReactMarkdown>{message.content}</ReactMarkdown>
@@ -240,26 +274,11 @@ export default function ConsultSystem() {
                   )}
                 </div>
               ))}
+              {!hasUserMessage && !loading && <PromptRail loading={loading} onSelect={send} />}
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="shrink-0 border-t border-white/8 p-4 [@media(max-height:520px)]:p-3">
-              <div className="[@media(max-height:520px)]:hidden">
-                <p className="mb-2 text-xs font-semibold uppercase text-white/35">Suggested prompts</p>
-                <div className="mb-3 flex flex-wrap gap-1.5">
-                  {suggestedPrompts.map((prompt) => (
-                    <button
-                      key={prompt}
-                      onClick={() => send(prompt)}
-                      disabled={loading}
-                      className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] text-white/60 hover:border-primary/30 hover:text-white disabled:opacity-40"
-                      type="button"
-                    >
-                      {prompt}
-                    </button>
-                  ))}
-                </div>
-              </div>
+            <div className="shrink-0 border-t border-white/8 bg-[#07110f]/95 p-3 sm:p-4" data-consult-inputbar="true">
               <div className="flex gap-2">
                 <input
                   ref={inputRef}
