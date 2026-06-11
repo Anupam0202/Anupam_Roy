@@ -55,7 +55,7 @@ Main sections:
 - Projects - one ranked AI Lab for all projects.
 - Intelligence Vault - ecosystem capability graph.
 - Mastery Wall - 74 certification PDFs and issuer links.
-- Achievements - Google Cloud, Credly, and chess proof signals.
+- Achievements - Google Cloud and Credly proof signals.
 - Education - compact academic history.
 - Contact - validated API-backed contact form.
 - AI Consultant - Gemini-powered when configured, offline portfolio mode otherwise.

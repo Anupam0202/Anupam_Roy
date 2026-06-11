@@ -9,10 +9,10 @@ export function PremiumAchievements() {
         <SectionHeader
           eyebrow="Achievements"
           title="Earned proof, visible receipts."
-          description="Milestones that show consistency: Google Cloud learning depth, public Credly proof, and practical problem-solving discipline."
+          description="Milestones that show consistent Google Cloud learning depth and publicly verified Credly achievement history."
         />
 
-        <div className="mt-10 grid gap-5 lg:grid-cols-3">
+        <div className="mt-10 grid gap-5 lg:grid-cols-2">
           {achievements.map((achievement, index) => (
             <article key={achievement.title} className="rounded-3xl border border-white/8 bg-white/[0.03] p-6">
               <div className="flex items-center gap-3">

@@ -106,12 +106,12 @@ ${projects
 NexusRAG should be treated as the flagship because it most directly maps to RAG, OCR, retrieval, streaming, backend, and production AI platform work.`,
   },
   {
-    keywords: ["achievement", "achievements", "credly", "google cloud", "chess"],
+    keywords: ["achievement", "achievements", "credly", "google cloud"],
     answer: `## Achievements
 
 ${achievements.map((achievement) => `- **${achievement.title}:** ${achievement.proof}`).join("\n")}
 
-These are proof signals for consistency: cloud learning depth, public badges, and problem-solving discipline.`,
+These are verified proof signals for consistent cloud learning and public credential depth.`,
   },
   {
     keywords: ["contact", "email", "linkedin", "github", "reach"],

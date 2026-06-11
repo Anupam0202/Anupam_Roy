@@ -42,12 +42,4 @@ export const achievements: Achievement[] = [
       { label: "Credly Profile", href: "https://www.credly.com/users/anupam_roy/" },
     ],
   },
-  {
-    title: "Chess Discipline",
-    proof: "1000+ ELO in Rapid on Chess.com.",
-    summary:
-      "A practical signal of pattern recognition, calculation discipline, and decision-making under constraints.",
-    metrics: [{ value: "1000+", label: "Rapid ELO" }],
-    links: [{ label: "Chess.com Profile", href: "https://www.chess.com/member/anuroytwo" }],
-  },
 ];
