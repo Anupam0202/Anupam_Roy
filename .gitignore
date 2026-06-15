@@ -48,6 +48,7 @@ Thumbs.db
 .cache/
 .local/
 .playwright-cli/
+.codex-logs/
 
 # Environment
 .env

@@ -5,7 +5,6 @@ export const profile = {
   role: "AI/ML Analyst",
   company: "Accenture",
   email: "anupam020202@gmail.com",
-  birthYear: 2000,
   headline: "AI/ML Analyst building production GenAI, RAG, and multi-agent systems",
   positioning:
     "I build enterprise AI systems that turn documents, tickets, logs, and operational knowledge into real-time decisions.",
@@ -18,15 +17,6 @@ export const profileLinks: LinkItem[] = [
   { label: "GitHub", href: "https://github.com/Anupam0202/" },
   { label: "LinkedIn", href: "https://www.linkedin.com/in/anupam--roy/" },
   { label: "Credly", href: "https://www.credly.com/users/anupam_roy/" },
-];
-
-export const proofChips = [
-  "Production GenAI at Accenture",
-  "LangGraph Multi-Agent Systems",
-  "RAG + OCR + Hybrid Retrieval",
-  "74 Verified Certifications",
-  "180+ Credly Badges",
-  "Multi-cloud: AWS + Azure + GCP",
 ];
 
 export const portfolioMetrics: Metric[] = [

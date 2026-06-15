@@ -5,7 +5,7 @@ const steps = [
   { text: "Correlating historical incidents...", color: "text-muted-foreground" },
   { text: "Running semantic retrieval pipeline...", color: "text-muted-foreground" },
   { text: "Generating contextual remediation workflow...", color: "text-muted-foreground" },
-  { text: "Resolution confidence: 94.2%", color: "text-green-400" },
+  { text: "Evidence package assembled for human review.", color: "text-green-400" },
 ];
 
 export default function LiveRCA() {
@@ -20,7 +20,7 @@ export default function LiveRCA() {
       <div className="mb-8 flex items-center justify-between flex-wrap gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-primary">
-            RCA CASE STUDY
+            RCA WORKFLOW
           </p>
           <h3 className="mt-3 font-display text-3xl font-bold text-white">
             Incident Correlation Pipeline

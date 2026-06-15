@@ -8,12 +8,16 @@
     "dev": "pnpm --parallel --filter @workspace/api-server --filter @workspace/anupam-intelligence-systems run dev",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
     "start": "pnpm --filter @workspace/api-server run start",
-    "typecheck:libs": "tsc --build",
-    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --if-present run typecheck"
+    "typecheck": "pnpm -r --filter \"./artifacts/**\" --if-present run typecheck",
+    "audit:prod": "pnpm audit --prod"
   },
   "private": true,
+  "knip": {
+    "entry": [
+      "api/index.js"
+    ]
+  },
   "devDependencies": {
-    "typescript": "~5.9.2",
-    "prettier": "^3.8.1"
+    "typescript": "~5.9.2"
   }
 }

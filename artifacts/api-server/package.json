@@ -11,21 +11,14 @@
   },
   "dependencies": {
     "@google/genai": "^1.51.0",
-    "@workspace/api-zod": "workspace:*",
-    "@workspace/db": "workspace:*",
-    "@workspace/integrations-gemini-ai": "workspace:*",
-    "cookie-parser": "^1.4.7",
-    "cors": "^2",
     "dotenv": "^17.4.2",
-    "drizzle-orm": "catalog:",
     "express": "^5",
+    "helmet": "^8.1.0",
     "pino": "^9",
     "pino-http": "^10",
     "resend": "^6.12.3"
   },
   "devDependencies": {
-    "@types/cookie-parser": "^1.4.10",
-    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "catalog:",
     "esbuild": "^0.27.3",

@@ -163,7 +163,7 @@ function LiveExperienceConsole({ activeRole }: { activeRole: number }) {
             </p>
           </div>
           <p className="text-sm leading-relaxed text-white/55">
-            A recruiter-facing simulation of the actual engineering workflow, with client and internal system names intentionally abstracted.
+            A representative simulation of the engineering workflow, expressed through public-safe capabilities and technology patterns.
           </p>
         </div>
 
@@ -218,7 +218,7 @@ export function PremiumExperience() {
         <SectionHeader
           eyebrow="Experience"
           title="Live experience console, privacy-safe by design."
-          description="Production work is explained through architecture, workflow, impact, and tech stack while keeping client and internal system details private."
+          description="Production work is explained through architecture, workflow, measurable impact, and technology patterns while keeping the narrative appropriately generic."
         />
 
         <div className="mt-12 grid gap-4 md:grid-cols-2">
@@ -418,7 +418,7 @@ export function PremiumExperience() {
                       <div className="mt-5 rounded-2xl border border-white/8 bg-black/20 p-5">
                         <Code2 className="mb-4 h-5 w-5" style={{ color: visual.accent }} />
                         <p className="text-sm leading-relaxed text-muted-foreground">
-                          This role is presented by capability and technology, not by confidential client or internal system names.
+                          This role is presented through capabilities, engineering decisions, and public-safe technology patterns.
                         </p>
                       </div>
                     </div>

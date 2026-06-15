@@ -33,11 +33,10 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (!id.includes("node_modules")) return undefined;
-          if (id.includes("react") || id.includes("react-dom") || id.includes("wouter")) return "react-vendor";
+          if (id.includes("react") || id.includes("react-dom")) return "react-vendor";
           if (id.includes("framer-motion")) return "motion";
           if (id.includes("lucide-react")) return "icons";
           if (id.includes("react-markdown") || id.includes("remark") || id.includes("micromark")) return "markdown";
-          if (id.includes("@tanstack/react-query")) return "query";
           return undefined;
         },
       },

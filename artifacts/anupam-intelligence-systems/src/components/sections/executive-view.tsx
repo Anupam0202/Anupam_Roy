@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { X, Mail, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 import { ALL_CERTS } from "@/data/certifications";
@@ -11,6 +11,8 @@ interface ExecutiveViewProps {
 }
 
 export function ExecutiveView({ onClose }: ExecutiveViewProps) {
+  const dialogRef = useRef<HTMLElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
   const topProjects = projects.filter((project) => project.rank !== "archive").slice(0, 3);
   const topCerts = ALL_CERTS.filter((cert) =>
     ["ML Engineer - Associate", "Professional ML Engineer", "Professional Cloud Architect", "Generative AI Engineer Associate", "Claude Certified Architect - Foundations"].includes(cert.name),
@@ -19,10 +21,34 @@ export function ExecutiveView({ onClose }: ExecutiveViewProps) {
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab" || !dialogRef.current) return;
+
+      const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>("button:not([disabled]), a[href]"));
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
     return () => {
       document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKeyDown);
     };
-  }, []);
+  }, [onClose]);
 
   return (
     <motion.div
@@ -33,12 +59,14 @@ export function ExecutiveView({ onClose }: ExecutiveViewProps) {
       onWheel={(event) => event.stopPropagation()}
     >
       <section
+        ref={dialogRef}
         className="relative mx-auto flex h-full max-h-[calc(100dvh-1.5rem)] max-w-7xl flex-col overflow-hidden rounded-3xl border border-yellow-400/20 bg-[#07110f]/98 shadow-[0_0_90px_rgba(0,0,0,0.9)] md:max-h-[calc(100dvh-4rem)]"
         role="dialog"
         aria-modal="true"
         aria-labelledby="executive-view-title"
       >
         <button
+          ref={closeRef}
           onClick={onClose}
           className="absolute right-4 top-4 z-20 rounded-full border border-white/10 bg-black/35 p-2 text-white/70 backdrop-blur-xl hover:text-white"
           aria-label="Close executive view"
@@ -53,10 +81,10 @@ export function ExecutiveView({ onClose }: ExecutiveViewProps) {
         </h1>
         <p className="mt-5 max-w-3xl text-lg leading-relaxed text-muted-foreground">{profile.positioning}</p>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
           {portfolioMetrics.map((metric) => (
-            <div key={metric.label} className="rounded-2xl border border-yellow-400/15 bg-yellow-400/[0.06] p-5">
-              <div className="font-display text-3xl font-bold text-yellow-300">{metric.value}</div>
+            <div key={metric.label} className="rounded-2xl border border-yellow-400/15 bg-yellow-400/[0.06] p-4 md:p-5">
+              <div className="font-display text-2xl font-bold text-yellow-300 md:text-3xl">{metric.value}</div>
               <div className="mt-1 text-sm text-white">{metric.label}</div>
             </div>
           ))}

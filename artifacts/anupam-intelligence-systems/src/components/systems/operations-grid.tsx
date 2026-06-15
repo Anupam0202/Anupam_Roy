@@ -64,12 +64,12 @@ export default function OperationsGrid() {
           <div className="relative z-10">
             <div className="mb-8 flex items-center justify-between">
               <div className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs text-primary">
-                OPERATIONAL
+                CAPABILITY
               </div>
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-green-500" />
                 <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                  ACTIVE
+                  PRODUCTION PATTERN
                 </span>
               </div>
             </div>
@@ -91,7 +91,7 @@ export default function OperationsGrid() {
                 className="text-sm text-muted-foreground transition hover:text-white"
                 data-testid={`button-inspect-${operation.title.toLowerCase().replace(/\s+/g, "-")}`}
               >
-                Inspect System →
+                Inspect System -&gt;
               </a>
             </div>
           </div>

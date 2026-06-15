@@ -5,7 +5,7 @@ import { projects } from "./projects";
 import { skillGroups } from "./skills";
 import { ALL_CERTS, getCertificationCategory } from "./certifications";
 
-export interface AssistantEntry {
+interface AssistantEntry {
   keywords: string[];
   answer: string;
 }
@@ -32,7 +32,7 @@ export const suggestedPrompts = [
   "Switch to executive summary.",
 ];
 
-export const assistantKnowledge: AssistantEntry[] = [
+const assistantKnowledge: AssistantEntry[] = [
   {
     keywords: ["hire", "why", "fit", "recruiter", "summary", "executive"],
     answer: `## Why Anupam is a strong AI/ML engineering hire

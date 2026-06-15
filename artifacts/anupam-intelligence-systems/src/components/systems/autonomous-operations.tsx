@@ -8,12 +8,12 @@ import SystemMetadata from "./system-metadata";
 
 export default function AutonomousOperations() {
   return (
-    <SectionWrapper className="overflow-hidden border-t border-white/5" id="autonomous-ops">
+    <SectionWrapper className="overflow-hidden border-t border-white/5" id="systems">
       <FadeContainer>
         <SectionHeading
-          eyebrow="AUTONOMOUS OPERATIONS DIVISION"
-          title="Enterprise AI Operational Infrastructure"
-          description="Production-grade autonomous AI systems built for enterprise operations, incident intelligence, release management, retrieval orchestration, and operational automation."
+          eyebrow="SYSTEMS ARCHITECTURE"
+          title="From retrieval to operational action."
+          description="A capability-led view of multi-agent orchestration, incident intelligence, release workflows, retrieval, automation, and auditable operational AI."
         />
       </FadeContainer>
 

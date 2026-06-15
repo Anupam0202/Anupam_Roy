@@ -145,7 +145,9 @@ export default function ContactForm() {
                   className="contact-input contact-input-with-icon"
                   autoComplete="name"
                   maxLength={120}
+                  required
                   aria-invalid={Boolean(errors.name)}
+                  aria-describedby={errors.name ? "name-error" : undefined}
                 />
               </Field>
 
@@ -159,7 +161,9 @@ export default function ContactForm() {
                   autoComplete="email"
                   inputMode="email"
                   maxLength={180}
+                  required
                   aria-invalid={Boolean(errors.email)}
+                  aria-describedby={errors.email ? "email-error" : undefined}
                 />
               </Field>
             </div>
@@ -172,7 +176,9 @@ export default function ContactForm() {
                 placeholder="AI/ML role, architecture discussion, or collaboration"
                 className="contact-input"
                 maxLength={160}
+                required
                 aria-invalid={Boolean(errors.subject)}
+                aria-describedby={errors.subject ? "subject-error" : undefined}
               />
             </Field>
 
@@ -185,7 +191,9 @@ export default function ContactForm() {
                 rows={6}
                 className="contact-input contact-input-with-icon resize-none"
                 maxLength={5000}
+                required
                 aria-invalid={Boolean(errors.message)}
+                aria-describedby={errors.message ? "message-error" : undefined}
               />
             </Field>
 

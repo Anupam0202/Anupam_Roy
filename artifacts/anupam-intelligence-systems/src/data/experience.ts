@@ -62,7 +62,7 @@ export const experience: ExperienceRole[] = [
     positioning: "Software-engineering foundation across Java microservices, serverless automation, CI/CD, quality, and Agile delivery.",
     architectureBlocks: ["Java Microservices", "AWS Lambda", "CI/CD", "JUnit Testing", "Code Quality", "Agile DevOps"],
     built: [
-      "Built and deployed Spring Boot and Core Java microservices for scalable insurance workflows.",
+      "Built and deployed Spring Boot and Core Java microservices for scalable enterprise workflows.",
       "Designed AWS Lambda serverless components for event-driven execution.",
       "Implemented CI/CD pipelines with CodeBuild and automated workflows to reduce manual deployment effort.",
       "Developed JUnit unit and integration tests to reduce regression risk.",

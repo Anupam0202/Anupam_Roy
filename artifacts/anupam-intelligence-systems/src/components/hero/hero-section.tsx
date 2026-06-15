@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight } from "lucide-react";
-import GlowOrb from "@/components/shared/glow-orb";
 import GridBackground from "@/components/shared/grid-background";
 import NeuralParticles from "@/components/shared/neural-particles";
 import LiveStatus from "@/components/ui/live-status";
@@ -21,14 +20,14 @@ const techChips = [
 ];
 
 const eventStream = [
-  { text: "Incident classified · P1 → ETL latency spike", color: "#F59E0B", tag: "INCIDENT" },
-  { text: "RCA generated · 3 historical correlations found", color: "#00F5D4", tag: "RCA" },
-  { text: "Release notes deployed · v2.4.1 → staging", color: "#4ADE80", tag: "RELEASE" },
-  { text: "Hybrid retrieval completed · 47 chunks ranked", color: "#38BDF8", tag: "RETRIEVAL" },
-  { text: "Agent routed · ITSM ticket auto-created", color: "#A78BFA", tag: "AUTOMATION" },
-  { text: "SQL engine · impacted tables identified", color: "#F97316", tag: "DATA" },
-  { text: "SOX compliance report generated · audit ready", color: "#EC4899", tag: "COMPLIANCE" },
-  { text: "Test cases generated · 12 Selenium scripts", color: "#00F5D4", tag: "TESTING" },
+  { text: "Incident classified | operational priority detected", color: "#F59E0B", tag: "INCIDENT" },
+  { text: "RCA workflow | historical correlations retrieved", color: "#00F5D4", tag: "RCA" },
+  { text: "Release intelligence | deployment brief prepared", color: "#4ADE80", tag: "RELEASE" },
+  { text: "Hybrid retrieval | evidence ranked and cited", color: "#38BDF8", tag: "RETRIEVAL" },
+  { text: "Agent routed | ITSM payload prepared", color: "#A78BFA", tag: "AUTOMATION" },
+  { text: "SQL analysis | impacted tables identified", color: "#F97316", tag: "DATA" },
+  { text: "Compliance workflow | audit package prepared", color: "#EC4899", tag: "COMPLIANCE" },
+  { text: "Test generation | automation scripts drafted", color: "#00F5D4", tag: "TESTING" },
 ];
 
 function LiveOrchestrationCore() {
@@ -108,7 +107,6 @@ export default function HeroSection() {
     <section id="hero" className="relative min-h-[100svh] overflow-hidden">
       <GridBackground />
       <NeuralParticles />
-      <GlowOrb />
 
       <div className="relative z-10 mx-auto flex w-[92%] max-w-7xl flex-col items-center justify-between gap-10 pb-8 pt-28 sm:pt-36 md:pb-36 lg:gap-12 lg:pb-32 xl:flex-row xl:gap-16">
 
@@ -157,7 +155,7 @@ export default function HeroSection() {
 
           {/* Skill-focused description — zero employer branding */}
           <p className="mt-6 max-w-xl text-base sm:text-lg leading-relaxed text-muted-foreground">
-            I design and ship production-grade AI systems — multi-agent orchestration, enterprise RAG pipelines, and cloud-native intelligence that eliminate manual bottlenecks at scale.
+            I design and ship production-grade AI systems: multi-agent orchestration, enterprise RAG pipelines, and cloud-native intelligence that reduce manual bottlenecks at scale.
           </p>
 
           {/* CTAs */}
@@ -203,7 +201,6 @@ export default function HeroSection() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
           className="hidden sm:block relative h-[440px] md:h-[500px] w-full max-w-lg"
-          style={{ willChange: "transform" }}
         >
           <LiveOrchestrationCore />
         </motion.div>

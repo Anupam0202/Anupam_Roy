@@ -95,7 +95,9 @@ export function PremiumProjects() {
           {tabs.map((tab) => (
             <button
               key={tab}
+              type="button"
               onClick={() => setActiveTab(tab)}
+              aria-pressed={activeTab === tab}
               className={`rounded-full border px-4 py-2 text-sm font-medium transition ${activeTab === tab ? "border-primary/40 bg-primary/15 text-primary" : "border-white/10 bg-white/[0.03] text-white/55 hover:text-white"}`}
             >
               {tab}

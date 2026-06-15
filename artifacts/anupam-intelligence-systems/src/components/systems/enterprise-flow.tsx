@@ -31,7 +31,7 @@ export default function EnterpriseFlow() {
       <div className="flex items-center justify-between border-b border-white/10 px-8 py-6 flex-wrap gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-primary">
-            LIVE ENTERPRISE ARCHITECTURE
+            REFERENCE ARCHITECTURE
           </p>
           <h3 className="mt-3 font-display text-2xl font-bold text-white">
             Multi-Agent Operational Intelligence
@@ -43,7 +43,7 @@ export default function EnterpriseFlow() {
             <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
           </span>
           <span className="rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-xs text-primary font-medium tracking-wider">
-            LANGGRAPH ORCHESTRATION ACTIVE
+            LANGGRAPH WORKFLOW MAP
           </span>
         </div>
       </div>
