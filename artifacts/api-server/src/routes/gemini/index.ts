@@ -1,14 +1,10 @@
 import { GoogleGenAI } from "@google/genai";
 import { Router, type IRouter, type Request, type Response } from "express";
 import { createRateLimiter } from "../../lib/rate-limit";
+import { isJsonContentType, normalizeChatPayload } from "./validation";
 
 const router: IRouter = Router();
 const isChatRateLimited = createRateLimiter({ limit: 12, windowMs: 60_000 });
-
-interface ChatHistoryItem {
-  role?: unknown;
-  content?: unknown;
-}
 
 const SYSTEM_PROMPT = `You are the portfolio concierge for Anupam Roy.
 
@@ -61,23 +57,6 @@ function getGeminiClient() {
   return apiKey ? new GoogleGenAI({ apiKey }) : null;
 }
 
-function normalizeText(value: unknown, maxLength: number) {
-  return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
-}
-
-function normalizeHistory(value: unknown) {
-  if (!Array.isArray(value)) return [];
-
-  return value
-    .slice(-8)
-    .map((item: ChatHistoryItem) => ({
-      role: item?.role === "assistant" ? ("model" as const) : ("user" as const),
-      content: normalizeText(item?.content, 1_500),
-    }))
-    .filter((item) => item.content)
-    .map((item) => ({ role: item.role, parts: [{ text: item.content }] }));
-}
-
 function clientKey(req: Request) {
   return req.ip ?? req.socket.remoteAddress ?? "unknown";
 }
@@ -89,20 +68,19 @@ router.get("/gemini/status", (_req: Request, res: Response) => {
 
 router.post("/gemini/chat", async (req: Request, res: Response) => {
   res.setHeader("Cache-Control", "no-store");
-  if (!req.is("application/json")) {
+  if (!isJsonContentType(req.get("content-type"))) {
     return void res.status(415).json({ error: "Content-Type must be application/json." });
   }
   if (isChatRateLimited(clientKey(req))) {
     return void res.status(429).json({ error: "Assistant rate limit reached. Continue with offline portfolio mode." });
   }
 
-  const content = normalizeText(req.body?.content, 1_500);
-  if (!content) return void res.status(400).json({ error: "Message content is required." });
+  const payload = normalizeChatPayload(req.body);
+  if (!payload) return void res.status(400).json({ error: "Message content is required." });
 
   const client = getGeminiClient();
   if (!client) return void res.status(503).json({ error: "Gemini is not configured. Continue with offline portfolio mode." });
 
-  const history = normalizeHistory(req.body?.history);
   res.status(200);
   res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
   res.setHeader("Connection", "keep-alive");
@@ -112,7 +90,7 @@ router.post("/gemini/chat", async (req: Request, res: Response) => {
   try {
     const stream = await client.models.generateContentStream({
       model: process.env.GEMINI_MODEL ?? "gemini-2.5-flash",
-      contents: [...history, { role: "user", parts: [{ text: content }] }],
+      contents: [...payload.history, { role: "user", parts: [{ text: payload.content }] }],
       config: {
         systemInstruction: SYSTEM_PROMPT,
         maxOutputTokens: 1_200,

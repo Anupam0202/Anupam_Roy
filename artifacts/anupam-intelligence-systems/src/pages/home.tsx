@@ -1,11 +1,14 @@
 import { lazy, Suspense, useState } from "react";
 import { AnimatePresence } from "framer-motion";
+import HybridSynapseLaunch from "@/components/layout/hybrid-synapse-launch";
 import Navbar from "@/components/layout/navbar";
 import ScrollProgress from "@/components/layout/scroll-progress";
+import SystemTimeDock from "@/components/layout/system-time-dock";
 import HeroSection from "@/components/hero/hero-section";
 import SectionDivider from "@/components/shared/section-divider";
 import SpatialGlow from "@/components/shared/spatial-glow";
 import { PremiumAbout } from "@/components/sections/premium-about";
+import { useIntroSession } from "@/hooks/use-intro-session";
 
 const SystemsArchitecture = lazy(() => import("@/components/systems/autonomous-operations"));
 const CertificationsVault = lazy(() => import("@/components/certifications/certifications-vault"));
@@ -29,6 +32,7 @@ function SectionFallback({ label }: { label: string }) {
 
 export default function Home() {
   const [executiveOpen, setExecutiveOpen] = useState(false);
+  const { introOpen, reducedMotion, replayIntro, skipIntro } = useIntroSession();
 
   return (
     <>
@@ -70,6 +74,7 @@ export default function Home() {
         <Suspense fallback={null}>
           <ConsultSystem />
         </Suspense>
+        <SystemTimeDock onReplay={replayIntro} />
 
         <footer className="border-t border-white/5 bg-background py-8">
           <div className="mx-auto flex w-[92%] max-w-7xl flex-col items-center justify-between gap-4 md:flex-row">
@@ -85,6 +90,7 @@ export default function Home() {
       </div>
 
       <AnimatePresence>
+        {introOpen && <HybridSynapseLaunch reducedMotion={reducedMotion} onSkip={skipIntro} />}
         {executiveOpen && (
           <Suspense fallback={null}>
             <ExecutiveView onClose={() => setExecutiveOpen(false)} />
