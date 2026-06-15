@@ -49,6 +49,7 @@ Thumbs.db
 .local/
 .playwright-cli/
 .codex-logs/
+.superpowers/
 
 # Environment
 .env
