@@ -34,7 +34,7 @@ function SectionFallback({ label }: { label: string }) {
 export default function Home() {
   const [executiveOpen, setExecutiveOpen] = useState(false);
   const { introOpen, reducedMotion, replayIntro, skipIntro } = useIntroSession();
-  useStableHashNavigation();
+  useStableHashNavigation(!introOpen);
 
   return (
     <>
