@@ -30,9 +30,9 @@ onlyBuiltDependencies:
 overrides:
   '@esbuild-kit/esm-loader': npm:tsx@^4.21.0
   path-to-regexp: 8.4.2
-  protobufjs: 7.5.8
+  protobufjs: 7.6.3
   qs: 6.15.2
-  ws: 8.20.1
+  ws: 8.21.0
   '@expo/ngrok-bin>@expo/ngrok-bin-darwin-arm64': '-'
   '@expo/ngrok-bin>@expo/ngrok-bin-darwin-x64': '-'
   '@expo/ngrok-bin>@expo/ngrok-bin-freebsd-ia32': '-'

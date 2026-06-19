@@ -133,16 +133,15 @@ function CertificationModal({
       data-cert-modal
       style={{ zIndex: 10000 }}
     >
-      <button
-        aria-label="Close certificate viewer"
+      <div
+        aria-hidden="true"
         className="absolute inset-0 h-full w-full cursor-default bg-black/85 backdrop-blur-md"
         onClick={onClose}
-        type="button"
       />
 
       <div className="relative z-10 flex h-[92dvh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-white/12 bg-[#0c0f1a] shadow-[0_32px_80px_-8px_rgba(0,0,0,0.8)]">
         <div className="flex shrink-0 items-center gap-3 border-b border-white/8 bg-white/[0.03] px-4 py-3">
-          <div className="flex gap-1.5" aria-hidden="true">
+          <div className="hidden gap-1.5 min-[360px]:flex" aria-hidden="true">
             <span className="h-3 w-3 rounded-full bg-[#FF5F57]" />
             <span className="h-3 w-3 rounded-full bg-[#FEBC2E]" />
             <span className="h-3 w-3 rounded-full bg-[#28C840]" />
@@ -157,7 +156,7 @@ function CertificationModal({
             ref={closeRef}
             onClick={onClose}
             aria-label="Close certificate viewer"
-            className="rounded-lg p-1.5 text-white/45 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-primary/60"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-white/45 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-primary/60"
             type="button"
           >
             <X className="h-4 w-4" />
@@ -208,12 +207,12 @@ function CertificationModal({
               </div>
             </div>
 
-            <div className="flex shrink-0 flex-col gap-2 border-t border-white/8 bg-[#0c0f1a]/95 p-5">
+            <div className="flex shrink-0 gap-2 border-t border-white/8 bg-[#0c0f1a]/95 p-3 md:flex-col md:p-5">
               <a
                 href={cert.verify}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-xs font-bold uppercase transition hover:brightness-125 focus:outline-none focus:ring-2 focus:ring-primary/60"
+                className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl px-2 py-2 text-[10px] font-bold uppercase transition hover:brightness-125 focus:outline-none focus:ring-2 focus:ring-primary/60 md:px-4 md:py-3 md:text-xs"
                 style={{ borderWidth: 1, borderStyle: "solid", borderColor: `${cert.color}55`, background: `${cert.color}1f`, color: cert.color }}
               >
                 <ShieldCheck className="h-4 w-4" />
@@ -223,7 +222,7 @@ function CertificationModal({
                 href={cert.pdf}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 font-mono text-xs text-white/70 transition hover:border-white/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-primary/60"
+                className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-2 py-2 font-mono text-[10px] text-white/70 transition hover:border-white/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-primary/60 md:px-4 md:py-3 md:text-xs"
               >
                 <Download className="h-4 w-4" />
                 Open PDF
@@ -244,12 +243,12 @@ function CertificationModal({
           </div>
         </div>
 
-        <div className="flex shrink-0 flex-col gap-3 border-t border-white/8 bg-[#0c0f1a]/98 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div className="flex shrink-0 items-center justify-between gap-2 border-t border-white/8 bg-[#0c0f1a]/98 px-3 py-2 sm:px-5 sm:py-3">
           <div className="flex items-center justify-between gap-2 sm:justify-start">
             <button
               onClick={onPrev}
               disabled={idx === 0}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 text-white/50 transition hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-20 focus:outline-none focus:ring-2 focus:ring-primary/60"
+              className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 text-white/50 transition hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-20 focus:outline-none focus:ring-2 focus:ring-primary/60"
               type="button"
               aria-label="Previous certificate"
             >
@@ -259,7 +258,7 @@ function CertificationModal({
             <button
               onClick={onNext}
               disabled={idx === total - 1}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 text-white/50 transition hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-20 focus:outline-none focus:ring-2 focus:ring-primary/60"
+              className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 text-white/50 transition hover:border-white/25 hover:text-white disabled:cursor-not-allowed disabled:opacity-20 focus:outline-none focus:ring-2 focus:ring-primary/60"
               type="button"
               aria-label="Next certificate"
             >
@@ -271,7 +270,7 @@ function CertificationModal({
             href={cert.verify}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg border px-4 py-2.5 font-mono text-xs font-semibold transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primary/60"
+            className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg border px-2.5 py-2 font-mono text-[10px] font-semibold transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primary/60 sm:px-4 sm:py-2.5 sm:text-xs"
             style={{ borderColor: `${cert.color}45`, background: `${cert.color}20`, color: cert.color }}
           >
             <ExternalLink className="h-3.5 w-3.5" />
@@ -505,7 +504,7 @@ export default function CertificationsVault() {
                     setFilter(provider.key);
                     setExpanded(false);
                   }}
-                  className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium transition ${
+                  className={`flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium transition ${
                     active
                       ? "text-white shadow-lg"
                       : "border-white/8 bg-white/[0.02] text-white/45 hover:border-white/15 hover:text-white/75"
@@ -538,7 +537,7 @@ export default function CertificationsVault() {
                     setCategory(item);
                     setExpanded(false);
                   }}
-                  className={`rounded-full border px-4 py-2 text-xs font-medium transition ${
+                  className={`min-h-11 rounded-full border px-4 py-2 text-xs font-medium transition ${
                     active
                       ? "border-primary/35 bg-primary/12 text-primary"
                       : "border-white/8 bg-white/[0.02] text-white/45 hover:text-white"
@@ -629,10 +628,10 @@ export default function CertificationsVault() {
             </div>
           </div>
           <div className="flex flex-wrap gap-4">
-            <a href="https://www.credly.com/users/anupam_roy/" target="_blank" rel="noreferrer" className="font-mono text-xs text-primary transition hover:text-white">
+            <a href="https://www.credly.com/users/anupam_roy/" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-mono text-xs text-primary transition hover:text-white">
               Credly Profile
             </a>
-            <a href="https://www.linkedin.com/in/anupam--roy/" target="_blank" rel="noreferrer" className="font-mono text-xs text-accent transition hover:text-white">
+            <a href="https://www.linkedin.com/in/anupam--roy/" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-mono text-xs text-accent transition hover:text-white">
               LinkedIn
             </a>
           </div>

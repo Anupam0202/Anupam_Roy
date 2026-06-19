@@ -49,8 +49,8 @@ export default function Navbar({ executiveOpen, onToggleExecutive }: NavbarProps
             : "border border-white/8 bg-white/[0.035] backdrop-blur-xl"
         }`}
       >
-        <a href="#hero" className="flex flex-shrink-0 items-center gap-2.5" aria-label="SynapseOps AI Command Center home">
-          <div className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-primary/25 bg-[#061310] shadow-[0_0_24px_rgba(45,212,191,0.18)]">
+        <a href="#hero" className="flex min-h-11 flex-shrink-0 items-center gap-2.5" aria-label="SynapseOps AI Command Center home">
+          <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border border-primary/25 bg-[#061310] shadow-[0_0_24px_rgba(45,212,191,0.18)] sm:h-9 sm:w-9">
             <span className="absolute -left-2 top-0 h-7 w-7 rounded-full bg-cyan-400/35 blur-md" />
             <span className="absolute -bottom-2 right-0 h-7 w-7 rounded-full bg-amber-400/35 blur-md" />
             <BrainCircuit className="relative h-[18px] w-[18px] text-primary" />
@@ -63,37 +63,37 @@ export default function Navbar({ executiveOpen, onToggleExecutive }: NavbarProps
 
         <nav className="hidden items-center gap-5 lg:flex" aria-label="Main navigation">
           {links.map((link) => (
-            <a key={link.name} href={link.href} className="text-sm text-muted-foreground transition-colors hover:text-white">
+            <a key={link.name} href={link.href} className="inline-flex min-h-11 items-center px-1 text-sm text-muted-foreground transition-colors hover:text-white">
               {link.name}
             </a>
           ))}
         </nav>
 
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <a href="https://github.com/Anupam0202/" target="_blank" rel="noreferrer" aria-label="GitHub" className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition hover:bg-white/8 hover:text-white">
+          <a href="https://github.com/Anupam0202/" target="_blank" rel="noreferrer" aria-label="GitHub" className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition hover:bg-white/8 hover:text-white">
             <Github className="h-4 w-4" />
           </a>
-          <a href="https://www.linkedin.com/in/anupam--roy/" target="_blank" rel="noreferrer" aria-label="LinkedIn" className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition hover:bg-white/8 hover:text-white">
+          <a href="https://www.linkedin.com/in/anupam--roy/" target="_blank" rel="noreferrer" aria-label="LinkedIn" className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition hover:bg-white/8 hover:text-white">
             <Linkedin className="h-4 w-4" />
           </a>
           <button
             onClick={onToggleExecutive}
             aria-pressed={executiveOpen}
-            className={`hidden items-center gap-1.5 rounded-full border px-3.5 py-2 text-xs font-medium transition sm:inline-flex ${
+            className={`hidden min-h-11 items-center gap-1.5 rounded-full border px-3.5 py-2 text-xs font-medium transition sm:inline-flex ${
               executiveOpen ? "border-yellow-400/30 bg-yellow-400/10 text-yellow-300" : "border-white/10 bg-white/[0.03] text-white/60 hover:text-white"
             }`}
           >
             <Briefcase className="h-3.5 w-3.5" />
             {executiveOpen ? "Exit Executive" : "Executive View"}
           </button>
-          <a href="#contact" className="hidden rounded-full border border-primary/20 bg-primary/10 px-5 py-2 text-sm font-medium text-primary transition hover:bg-primary/20 sm:inline-flex">
+          <a href="#contact" className="hidden min-h-11 items-center rounded-full border border-primary/20 bg-primary/10 px-5 py-2 text-sm font-medium text-primary transition hover:bg-primary/20 sm:inline-flex">
             Consult
           </a>
           <button
             onClick={() => setOpen((value) => !value)}
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition hover:bg-white/8 hover:text-white lg:hidden"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition hover:bg-white/8 hover:text-white lg:hidden"
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -111,7 +111,7 @@ export default function Navbar({ executiveOpen, onToggleExecutive }: NavbarProps
           >
             <div className="flex flex-col gap-4">
               {links.map((link) => (
-                <a key={link.name} href={link.href} onClick={() => setOpen(false)} className="py-0.5 text-sm text-muted-foreground transition-colors hover:text-white">
+                <a key={link.name} href={link.href} onClick={() => setOpen(false)} className="inline-flex min-h-11 items-center text-sm text-muted-foreground transition-colors hover:text-white">
                   {link.name}
                 </a>
               ))}

@@ -30,10 +30,10 @@ function ProjectCard({ project }: { project: Project }) {
           <h3 className="mt-2 font-display text-2xl font-bold text-white">{project.name}</h3>
         </div>
         <div className="flex gap-2">
-          <a href={project.live} target="_blank" rel="noreferrer" className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 hover:text-white" aria-label={`${project.name} live site`}>
+          <a href={project.live} target="_blank" rel="noreferrer" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 hover:text-white" aria-label={`${project.name} live site`}>
             <ExternalLink className="h-4 w-4" />
           </a>
-          <a href={project.github} target="_blank" rel="noreferrer" className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 hover:text-white" aria-label={`${project.name} GitHub`}>
+          <a href={project.github} target="_blank" rel="noreferrer" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/70 hover:text-white" aria-label={`${project.name} GitHub`}>
             <Github className="h-4 w-4" />
           </a>
         </div>
@@ -46,7 +46,7 @@ function ProjectCard({ project }: { project: Project }) {
           type="button"
           onClick={() => setShowArchitecture((value) => !value)}
           aria-expanded={showArchitecture}
-          className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary transition hover:bg-primary/15"
+          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary transition hover:bg-primary/15"
         >
           {showArchitecture ? "Hide architecture" : "View architecture"}
           <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showArchitecture ? "rotate-180" : ""}`} />
@@ -98,7 +98,7 @@ export function PremiumProjects() {
               type="button"
               onClick={() => setActiveTab(tab)}
               aria-pressed={activeTab === tab}
-              className={`rounded-full border px-4 py-2 text-sm font-medium transition ${activeTab === tab ? "border-primary/40 bg-primary/15 text-primary" : "border-white/10 bg-white/[0.03] text-white/55 hover:text-white"}`}
+              className={`min-h-11 rounded-full border px-4 py-2 text-sm font-medium transition ${activeTab === tab ? "border-primary/40 bg-primary/15 text-primary" : "border-white/10 bg-white/[0.03] text-white/55 hover:text-white"}`}
             >
               {tab}
             </button>

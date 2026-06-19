@@ -88,7 +88,7 @@ export default function OperationsGrid() {
               </span>
               <a
                 href={operation.target}
-                className="text-sm text-muted-foreground transition hover:text-white"
+                className="inline-flex min-h-11 items-center text-sm text-muted-foreground transition hover:text-white"
                 data-testid={`button-inspect-${operation.title.toLowerCase().replace(/\s+/g, "-")}`}
               >
                 Inspect System -&gt;

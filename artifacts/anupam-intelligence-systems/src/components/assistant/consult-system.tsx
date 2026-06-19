@@ -153,7 +153,7 @@ export default function ConsultSystem() {
                   <button
                     onClick={clearConversation}
                     disabled={responding}
-                    className="flex h-10 w-10 items-center justify-center text-white/48 transition hover:bg-white/8 hover:text-white disabled:opacity-35"
+                    className="flex h-11 w-11 items-center justify-center text-white/48 transition hover:bg-white/8 hover:text-white disabled:opacity-35"
                     aria-label="Clear conversation"
                     title="Clear conversation"
                     type="button"
@@ -164,7 +164,7 @@ export default function ConsultSystem() {
                 {responding && (
                   <button
                     onClick={cancelResponse}
-                    className="flex h-10 w-10 items-center justify-center text-secondary transition hover:bg-secondary/8"
+                    className="flex h-11 w-11 items-center justify-center text-secondary transition hover:bg-secondary/8"
                     aria-label="Cancel response"
                     title="Cancel response"
                     type="button"
@@ -174,7 +174,7 @@ export default function ConsultSystem() {
                 )}
                 <button
                   onClick={closeDialog}
-                  className="flex h-10 w-10 items-center justify-center text-white/55 transition hover:bg-white/10 hover:text-white"
+                  className="flex h-11 w-11 items-center justify-center text-white/55 transition hover:bg-white/10 hover:text-white"
                   aria-label="Close consultant"
                   type="button"
                 >
@@ -269,13 +269,13 @@ export default function ConsultSystem() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="fixed bottom-3 right-3 z-[100] inline-flex min-h-12 items-center gap-2 rounded-full border border-primary/30 bg-primary px-4 py-3 text-sm font-bold text-black shadow-[0_0_40px_rgba(45,212,191,0.3)] sm:bottom-8 sm:right-8 sm:px-5"
+        className="fixed bottom-3 right-3 z-[100] inline-flex h-12 w-12 items-center justify-center gap-2 rounded-full border border-primary/30 bg-primary p-0 text-sm font-bold text-black shadow-[0_0_40px_rgba(45,212,191,0.3)] min-[480px]:h-auto min-[480px]:w-auto min-[480px]:min-h-12 min-[480px]:px-4 min-[480px]:py-3 sm:bottom-8 sm:right-8 sm:px-5"
         aria-label="Open AI portfolio consultant"
         type="button"
       >
         <Bot className="h-4 w-4" />
         <span className="hidden sm:inline">AI Consultant</span>
-        <span className="sm:hidden">Consult</span>
+        <span className="hidden min-[480px]:inline sm:hidden">Consult</span>
       </motion.button>
 
       {createPortal(modal, document.body)}

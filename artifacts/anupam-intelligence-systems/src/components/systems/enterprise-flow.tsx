@@ -1,74 +1,85 @@
 import { motion } from "framer-motion";
-
-const nodes = [
-  { id: "1", x: 310, y: 40, label: "Enterprise Query Router", highlight: true },
-  { id: "2", x: 60, y: 200, label: "Incident Intelligence", highlight: false },
-  { id: "3", x: 310, y: 200, label: "RCA Engine", highlight: false },
-  { id: "4", x: 560, y: 200, label: "Release Intelligence", highlight: false },
-  { id: "5", x: 60, y: 360, label: "ITSM Automation", highlight: false },
-  { id: "6", x: 310, y: 360, label: "Knowledge Retrieval Layer", highlight: true },
-  { id: "7", x: 560, y: 360, label: "Compliance Intelligence", highlight: false },
-];
-
-const edges = [
-  { from: "1", to: "2" }, { from: "1", to: "3" }, { from: "1", to: "4" },
-  { from: "2", to: "6" }, { from: "3", to: "6" }, { from: "4", to: "6" },
-  { from: "6", to: "5" }, { from: "6", to: "7" },
-];
+import { flowEdges, flowNodes, getFlowNode, mobileFlowStages } from "./enterprise-flow-model";
 
 const NODE_W = 172;
 const NODE_H = 52;
-const cx = (n: typeof nodes[0]) => n.x + NODE_W / 2;
-const cy = (n: typeof nodes[0]) => n.y + NODE_H / 2;
-
-function getNode(id: string) {
-  return nodes.find((n) => n.id === id)!;
-}
+const cx = (node: (typeof flowNodes)[number]) => node.x + NODE_W / 2;
+const cy = (node: (typeof flowNodes)[number]) => node.y + NODE_H / 2;
 
 export default function EnterpriseFlow() {
   return (
-    <div className="glass mt-20 overflow-hidden rounded-[1.5rem] md:rounded-[2rem]">
-      <div className="flex items-center justify-between border-b border-white/10 px-8 py-6 flex-wrap gap-4">
-        <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-primary">
-            REFERENCE ARCHITECTURE
-          </p>
-          <h3 className="mt-3 font-display text-2xl font-bold text-white">
+    <div className="glass mt-12 overflow-hidden rounded-[1.5rem] md:mt-20 md:rounded-[2rem]">
+      <div className="flex flex-col items-start justify-between gap-4 border-b border-white/10 px-5 py-5 sm:px-8 sm:py-6 md:flex-row md:items-center">
+        <div className="min-w-0">
+          <p className="text-[11px] uppercase text-primary sm:text-xs">REFERENCE ARCHITECTURE</p>
+          <h3 className="mt-2 max-w-xl font-display text-xl font-bold leading-tight text-white sm:mt-3 sm:text-2xl">
             Multi-Agent Operational Intelligence
           </h3>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <span className="relative flex h-2 w-2">
             <span className="absolute animate-ping inline-flex h-full w-full rounded-full bg-primary opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
           </span>
-          <span className="rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-xs text-primary font-medium tracking-wider">
-            LANGGRAPH WORKFLOW MAP
+          <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-[10px] font-semibold text-primary sm:px-4 sm:text-xs">
+            LANGGRAPH ORCHESTRATION MAP
           </span>
         </div>
       </div>
 
-      <div className="grid gap-3 px-4 py-6 sm:grid-cols-2 sm:px-6 lg:hidden">
-        {nodes.map((node, index) => (
-          <motion.div
-            key={node.id}
+      <ol className="px-3 py-5 sm:px-6 sm:py-7 lg:hidden" aria-label="Multi-agent operational workflow">
+        {mobileFlowStages.map((stage, stageIndex) => (
+          <motion.li
+            key={stage.id}
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.35, delay: index * 0.04 }}
-            className={`rounded-2xl border p-4 text-sm ${
-              node.highlight
-                ? "border-primary/35 bg-primary/10 text-primary"
-                : "border-white/10 bg-white/[0.04] text-white/75"
-            }`}
+            transition={{ duration: 0.35, delay: stageIndex * 0.06 }}
+            data-testid={`mobile-flow-stage-${stage.id}`}
           >
-            <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-white/35">
-              Step {index + 1}
+            <div className="mb-2 flex items-center justify-between gap-3 px-1">
+              <div className="flex items-center gap-2">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full border border-primary/30 bg-primary/10 font-mono text-[9px] font-bold text-primary">
+                  {stageIndex + 1}
+                </span>
+                <span className="text-[10px] font-semibold uppercase text-white/55">{stage.label}</span>
+              </div>
+              <span className="text-[9px] text-white/32">{stage.description}</span>
             </div>
-            <div className="mt-2 font-medium">{node.label}</div>
-          </motion.div>
+
+            <div
+              className={`grid gap-1.5 ${
+                stage.nodeIds.length === 3 ? "grid-cols-3" : stage.nodeIds.length === 2 ? "grid-cols-2" : "grid-cols-1"
+              }`}
+            >
+              {stage.nodeIds.map((nodeId) => {
+                const node = getFlowNode(nodeId);
+                return (
+                  <div
+                    key={node.id}
+                    className={`flex min-h-[66px] items-center justify-center border px-2 py-3 text-center text-[11px] font-medium leading-snug sm:min-h-[72px] sm:text-xs ${
+                      node.highlight
+                        ? "border-primary/40 bg-primary/10 text-primary shadow-[0_0_24px_rgba(45,212,191,0.08)]"
+                        : "border-white/10 bg-white/[0.04] text-white/72"
+                    }`}
+                    data-testid={`mobile-flow-node-${node.id}`}
+                  >
+                    {node.label}
+                  </div>
+                );
+              })}
+            </div>
+
+            {stageIndex < mobileFlowStages.length - 1 && (
+              <div className="flex h-8 items-center justify-center" aria-hidden="true">
+                <div className="relative h-full w-px bg-primary/35">
+                  <span className="absolute -bottom-0.5 -left-[3px] h-2 w-2 rotate-45 border-b border-r border-primary/55" />
+                </div>
+              </div>
+            )}
+          </motion.li>
         ))}
-      </div>
+      </ol>
 
       <div className="hidden overflow-hidden px-8 py-10 lg:block">
         <div className="relative mx-auto" style={{ width: 800, height: 460 }}>
@@ -90,9 +101,9 @@ export default function EnterpriseFlow() {
               </filter>
             </defs>
 
-            {edges.map((edge, i) => {
-              const src = getNode(edge.from);
-              const dst = getNode(edge.to);
+            {flowEdges.map((edge, i) => {
+              const src = getFlowNode(edge.from);
+              const dst = getFlowNode(edge.to);
               const x1 = cx(src), y1 = cy(src) + NODE_H / 2 - 4;
               const x2 = cx(dst), y2 = cy(dst) - NODE_H / 2 + 4;
               const mid = (y1 + y2) / 2;
@@ -115,7 +126,7 @@ export default function EnterpriseFlow() {
             })}
           </svg>
 
-          {nodes.map((node, i) => (
+          {flowNodes.map((node, i) => (
             <motion.div
               key={node.id}
               initial={{ opacity: 0, scale: 0.8 }}

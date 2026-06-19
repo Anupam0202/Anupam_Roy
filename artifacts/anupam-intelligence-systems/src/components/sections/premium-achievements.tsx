@@ -34,7 +34,7 @@ export function PremiumAchievements() {
               </div>
               <div className="mt-5 flex flex-wrap gap-2">
                 {achievement.links.map((link) => (
-                  <a key={link.href} href={link.href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-white/70 hover:text-white">
+                  <a key={link.href} href={link.href} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-2 text-xs text-white/70 hover:text-white">
                     {link.label} <ExternalLink className="h-3 w-3" />
                   </a>
                 ))}

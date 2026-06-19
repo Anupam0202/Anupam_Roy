@@ -9,6 +9,7 @@ import SectionDivider from "@/components/shared/section-divider";
 import SpatialGlow from "@/components/shared/spatial-glow";
 import { PremiumAbout } from "@/components/sections/premium-about";
 import { useIntroSession } from "@/hooks/use-intro-session";
+import { useStableHashNavigation } from "@/hooks/use-stable-hash-navigation";
 
 const SystemsArchitecture = lazy(() => import("@/components/systems/autonomous-operations"));
 const CertificationsVault = lazy(() => import("@/components/certifications/certifications-vault"));
@@ -33,6 +34,7 @@ function SectionFallback({ label }: { label: string }) {
 export default function Home() {
   const [executiveOpen, setExecutiveOpen] = useState(false);
   const { introOpen, reducedMotion, replayIntro, skipIntro } = useIntroSession();
+  useStableHashNavigation();
 
   return (
     <>
@@ -76,7 +78,7 @@ export default function Home() {
         </Suspense>
         <SystemTimeDock onReplay={replayIntro} />
 
-        <footer className="border-t border-white/5 bg-background py-8">
+        <footer className="border-t border-white/5 bg-background pb-24 pt-8 sm:py-8">
           <div className="mx-auto flex w-[92%] max-w-7xl flex-col items-center justify-between gap-4 md:flex-row">
             <div className="text-sm font-medium uppercase text-white/40">
               (c) {new Date().getFullYear()} Anupam Roy - Production AI Systems Portfolio

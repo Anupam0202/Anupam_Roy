@@ -310,7 +310,7 @@ export function PremiumExperience() {
                 <button
                   key={key}
                   onClick={() => setActiveView(key as "systems" | "build" | "stack")}
-                  className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+                  className={`min-h-11 rounded-full border px-4 py-2 text-sm font-medium transition ${
                     activeView === key ? "border-primary/40 bg-primary/15 text-primary" : "border-white/10 bg-white/[0.03] text-white/55 hover:text-white"
                   }`}
                 >
