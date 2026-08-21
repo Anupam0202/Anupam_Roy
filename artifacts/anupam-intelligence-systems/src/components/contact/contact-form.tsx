@@ -1,5 +1,12 @@
 import { useState, type FormEvent } from "react";
-import { CheckCircle, Mail, MessageSquare, Send, ShieldCheck, User } from "lucide-react";
+import {
+  CheckCircle,
+  Mail,
+  MessageSquare,
+  Send,
+  ShieldCheck,
+  User,
+} from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 type FormState = "idle" | "submitting" | "success";
@@ -26,7 +33,9 @@ function isValidEmail(email: string) {
 
 function wasRecentlySubmitted() {
   try {
-    const last = Number(window.localStorage.getItem("portfolio-contact-last-submit") ?? 0);
+    const last = Number(
+      window.localStorage.getItem("portfolio-contact-last-submit") ?? 0,
+    );
     return Date.now() - last < 60_000;
   } catch {
     return false;
@@ -36,11 +45,14 @@ function wasRecentlySubmitted() {
 export default function ContactForm() {
   const [form, setForm] = useState<ContactPayload>(initialForm);
   const [state, setState] = useState<FormState>("idle");
-  const [errors, setErrors] = useState<Partial<Record<keyof ContactPayload, string>>>({});
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof ContactPayload, string>>
+  >({});
 
   function update(field: keyof ContactPayload, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
-    if (errors[field]) setErrors((current) => ({ ...current, [field]: undefined }));
+    if (errors[field])
+      setErrors((current) => ({ ...current, [field]: undefined }));
   }
 
   function validate() {
@@ -55,7 +67,8 @@ export default function ContactForm() {
     else if (!isValidEmail(email)) next.email = "Enter a valid email address.";
     if (!subject) next.subject = "Subject is required.";
     if (!message) next.message = "Message is required.";
-    else if (message.length < 20) next.message = "Please add at least 20 characters.";
+    else if (message.length < 20)
+      next.message = "Please add at least 20 characters.";
 
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -82,10 +95,14 @@ export default function ContactForm() {
         body: JSON.stringify(form),
       });
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload.error ?? "Message could not be sent.");
+      if (!response.ok)
+        throw new Error(payload.error ?? "Message could not be sent.");
 
       try {
-        window.localStorage.setItem("portfolio-contact-last-submit", String(Date.now()));
+        window.localStorage.setItem(
+          "portfolio-contact-last-submit",
+          String(Date.now()),
+        );
       } catch {
         // Non-critical: server-side rate limiting still protects the endpoint.
       }
@@ -100,7 +117,10 @@ export default function ContactForm() {
       setState("idle");
       toast({
         title: "Message not sent",
-        description: error instanceof Error ? error.message : "The contact service is unavailable right now.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "The contact service is unavailable right now.",
         variant: "destructive",
       });
     }
@@ -112,15 +132,20 @@ export default function ContactForm() {
         <div className="rounded-3xl border border-white/8 bg-white/[0.03] p-5 shadow-[0_0_70px_rgba(0,0,0,0.28)] md:p-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">Contact</p>
-              <h2 className="mt-3 font-display text-4xl font-bold text-white md:text-6xl">Start the conversation.</h2>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
+                Contact
+              </p>
+              <h2 className="mt-3 font-display text-4xl font-bold text-white md:text-6xl">
+                Start the conversation.
+              </h2>
               <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground">
-                Send a focused message for AI/ML roles, GenAI architecture, RAG systems, backend engineering, or cloud AI opportunities.
+                Send a focused message for AI/ML roles, GenAI architecture, RAG
+                systems, backend engineering, or cloud AI opportunities.
               </p>
             </div>
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/[0.08] px-4 py-2 text-xs font-semibold text-primary">
               <ShieldCheck className="h-4 w-4" />
-              Secure server-side delivery
+              Server-side delivery · direct email fallback
             </div>
           </div>
 
@@ -136,7 +161,11 @@ export default function ContactForm() {
             />
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Name" error={errors.name} icon={<User className="h-4 w-4" />}>
+              <Field
+                label="Name"
+                error={errors.name}
+                icon={<User className="h-4 w-4" />}
+              >
                 <input
                   name="name"
                   value={form.name}
@@ -151,7 +180,11 @@ export default function ContactForm() {
                 />
               </Field>
 
-              <Field label="Email" error={errors.email} icon={<Mail className="h-4 w-4" />}>
+              <Field
+                label="Email"
+                error={errors.email}
+                icon={<Mail className="h-4 w-4" />}
+              >
                 <input
                   name="email"
                   value={form.email}
@@ -182,7 +215,11 @@ export default function ContactForm() {
               />
             </Field>
 
-            <Field label="Message" error={errors.message} icon={<MessageSquare className="h-4 w-4" />}>
+            <Field
+              label="Message"
+              error={errors.message}
+              icon={<MessageSquare className="h-4 w-4" />}
+            >
               <textarea
                 name="message"
                 value={form.message}
@@ -198,7 +235,10 @@ export default function ContactForm() {
             </Field>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs text-white/38">Delivered through the backend contact API with server-side spam protection.</p>
+              <p className="text-xs text-white/38">
+                Delivered through the backend contact API with server-side spam
+                protection.
+              </p>
               <button
                 type="submit"
                 disabled={state === "submitting"}
@@ -211,24 +251,56 @@ export default function ContactForm() {
                 ) : (
                   <Send className="h-4 w-4" />
                 )}
-                {state === "submitting" ? "Sending..." : state === "success" ? "Sent" : "Send Message"}
+                {state === "submitting"
+                  ? "Sending..."
+                  : state === "success"
+                    ? "Sent"
+                    : "Send Message"}
               </button>
             </div>
           </form>
+          <p className="mt-6 border-t border-white/8 pt-5 text-sm leading-relaxed text-white/58">
+            Prefer email, or is the form unavailable? Write directly to{" "}
+            <a
+              className="font-semibold text-primary"
+              href="mailto:anupam020202@gmail.com?subject=Portfolio%20conversation"
+            >
+              anupam020202@gmail.com
+            </a>
+            .
+          </p>
         </div>
       </div>
     </section>
   );
 }
 
-function Field({ label, error, icon, children }: { label: string; error?: string; icon?: React.ReactNode; children: React.ReactNode }) {
-  const errorId = error ? `${label.toLowerCase().replace(/\s+/g, "-")}-error` : undefined;
+function Field({
+  label,
+  error,
+  icon,
+  children,
+}: {
+  label: string;
+  error?: string;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  const errorId = error
+    ? `${label.toLowerCase().replace(/\s+/g, "-")}-error`
+    : undefined;
 
   return (
     <label className="block">
-      <span className="mb-2 block text-xs font-semibold uppercase text-white/45">{label}</span>
+      <span className="mb-2 block text-xs font-semibold uppercase text-white/45">
+        {label}
+      </span>
       <div className="relative">
-        {icon && <span className="pointer-events-none absolute left-4 top-[0.95rem] z-10 text-white/30">{icon}</span>}
+        {icon && (
+          <span className="pointer-events-none absolute left-4 top-[0.95rem] z-10 text-white/30">
+            {icon}
+          </span>
+        )}
         {children}
       </div>
       {error && (

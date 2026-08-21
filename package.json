@@ -1,18 +1,26 @@
 {
-  "name": "workspace",
-  "version": "0.0.0",
+  "name": "anupam-roy-intelligence-systems",
+  "version": "1.0.0",
+  "private": true,
   "type": "module",
   "license": "MIT",
+  "packageManager": "pnpm@10.34.5",
+  "engines": {
+    "node": ">=22.12.0 <25",
+    "pnpm": ">=10.0.0 <11"
+  },
   "scripts": {
     "preinstall": "node scripts/ensure-pnpm.cjs",
     "dev": "pnpm --parallel --filter @workspace/api-server --filter @workspace/anupam-intelligence-systems run dev",
-    "build": "pnpm run typecheck && pnpm -r --if-present run build",
+    "check": "pnpm run verify:source && pnpm run typecheck && pnpm test",
+    "build": "pnpm run check && pnpm -r --if-present run build",
     "start": "pnpm --filter @workspace/api-server run start",
     "test": "pnpm -r --filter \"./artifacts/**\" --if-present run test",
     "typecheck": "pnpm -r --filter \"./artifacts/**\" --if-present run typecheck",
-    "audit:prod": "pnpm audit --prod"
+    "verify:source": "node scripts/verify-portfolio-source.mjs",
+    "audit:prod": "pnpm audit --prod",
+    "deploy:check": "pnpm run build && pnpm run audit:prod"
   },
-  "private": true,
   "knip": {
     "ignore": [
       "api/index.js"

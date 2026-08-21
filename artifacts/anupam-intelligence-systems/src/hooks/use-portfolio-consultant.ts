@@ -1,6 +1,16 @@
-import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { answerFromPortfolio } from "@/data/assistant";
-import { createConsultantStreamParser, type ConsultantStreamMode } from "@/lib/consultant-stream";
+import {
+  createConsultantStreamParser,
+  type ConsultantStreamMode,
+} from "@/lib/consultant-stream";
 
 export type ConsultantStatus =
   | "checking"
@@ -36,15 +46,22 @@ function referencesFor(query: string): ConsultantReference[] {
   const normalized = query.toLowerCase();
   const references: ConsultantReference[] = [];
   const add = (label: string, href: string) => {
-    if (!references.some((reference) => reference.href === href)) references.push({ label, href });
+    if (!references.some((reference) => reference.href === href))
+      references.push({ label, href });
   };
 
-  if (/hire|fit|experience|enterprise|incident|release|test/.test(normalized)) add("Experience", "#experience");
-  if (/system|architecture|agent|retrieval|rag|nexus/.test(normalized)) add("Systems", "#systems");
-  if (/project|nexus|plantpal|rag/.test(normalized)) add("Projects", "#projects");
-  if (/cert|cloud|aws|azure|gcp|google|microsoft|snowflake/.test(normalized)) add("Mastery", "#certifications");
-  if (/achievement|credly|badge/.test(normalized)) add("Achievements", "#achievements");
-  if (/contact|email|reach|hire|fit/.test(normalized)) add("Contact", "#contact");
+  if (/hire|fit|experience|enterprise|incident|release|test/.test(normalized))
+    add("Experience", "#experience");
+  if (/system|architecture|agent|retrieval|rag|nexus/.test(normalized))
+    add("Systems", "#systems");
+  if (/project|nexus|plantpal|rag/.test(normalized))
+    add("Projects", "#projects");
+  if (/cert|cloud|aws|azure|gcp|google|microsoft|snowflake/.test(normalized))
+    add("Mastery", "#certifications");
+  if (/achievement|credly|badge/.test(normalized))
+    add("Achievements", "#achievements");
+  if (/contact|email|reach|hire|fit/.test(normalized))
+    add("Contact", "#contact");
   return references.slice(0, 3);
 }
 
@@ -72,7 +89,8 @@ async function streamOfflineAnswer(
 
   let full = "";
   for (const token of text.split(" ")) {
-    if (signal.aborted) throw new DOMException("Response cancelled", "AbortError");
+    if (signal.aborted)
+      throw new DOMException("Response cancelled", "AbortError");
     full += `${full ? " " : ""}${token}`;
     onContent(full);
     await new Promise((resolve) => window.setTimeout(resolve, 8));
@@ -80,7 +98,9 @@ async function streamOfflineAnswer(
 }
 
 export function usePortfolioConsultant(open: boolean) {
-  const [messages, setMessages] = useState<ConsultantMessage[]>([INITIAL_MESSAGE]);
+  const [messages, setMessages] = useState<ConsultantMessage[]>([
+    INITIAL_MESSAGE,
+  ]);
   const [status, setStatus] = useState<ConsultantStatus>("checking");
   const [responding, setResponding] = useState(false);
   const geminiAvailableRef = useRef(false);
@@ -103,7 +123,11 @@ export function usePortfolioConsultant(open: boolean) {
       headers: { Accept: "application/json" },
       signal: controller.signal,
     })
-      .then((response) => (response.ok ? response.json() : Promise.reject(new Error("Status unavailable"))))
+      .then((response) =>
+        response.ok
+          ? response.json()
+          : Promise.reject(new Error("Status unavailable")),
+      )
       .then((payload) => {
         if (!active) return;
         window.clearTimeout(timeout);
@@ -143,10 +167,17 @@ export function usePortfolioConsultant(open: boolean) {
     setStatus(geminiAvailableRef.current ? "ready-gemini" : "ready-offline");
   }, [responding]);
 
-  async function streamGemini(text: string, history: ConsultantMessage[], signal: AbortSignal) {
+  async function streamGemini(
+    text: string,
+    history: ConsultantMessage[],
+    signal: AbortSignal,
+  ) {
     const response = await fetch("/api/gemini/chat", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "text/event-stream",
+      },
       body: JSON.stringify({
         content: text,
         history: history
@@ -168,7 +199,10 @@ export function usePortfolioConsultant(open: boolean) {
       for (const event of events) {
         if (event.type === "content") {
           full += event.content;
-          updateStreamingMessage(setMessages, { content: full, mode: "gemini" });
+          updateStreamingMessage(setMessages, {
+            content: full,
+            mode: "gemini",
+          });
         } else if (event.type === "error") {
           throw new Error(event.error);
         } else if (event.type === "malformed") {
@@ -191,7 +225,8 @@ export function usePortfolioConsultant(open: boolean) {
       reader.releaseLock();
     }
 
-    if (!full.trim() || !completed) throw new Error("Gemini response was incomplete");
+    if (!full.trim() || !completed)
+      throw new Error("Gemini response was incomplete");
     return full;
   }
 
@@ -209,10 +244,18 @@ export function usePortfolioConsultant(open: boolean) {
     setMessages((previous) => [
       ...previous,
       { role: "user", content },
-      { role: "assistant", content: "", streaming: true, mode: geminiAvailableRef.current ? "gemini" : "offline" },
+      {
+        role: "assistant",
+        content: "",
+        streaming: true,
+        mode: geminiAvailableRef.current ? "gemini" : "offline",
+      },
     ]);
 
-    const timeout = window.setTimeout(() => controller.abort("timeout"), REQUEST_TIMEOUT_MS);
+    const timeout = window.setTimeout(
+      () => controller.abort("timeout"),
+      REQUEST_TIMEOUT_MS,
+    );
 
     try {
       if (geminiAvailableRef.current) {
@@ -227,30 +270,53 @@ export function usePortfolioConsultant(open: boolean) {
       } else {
         const answer = answerFromPortfolio(content);
         await streamOfflineAnswer(answer, controller.signal, (value) =>
-          updateStreamingMessage(setMessages, { content: value, mode: "offline" }),
+          updateStreamingMessage(setMessages, {
+            content: value,
+            mode: "offline",
+          }),
         );
-        updateStreamingMessage(setMessages, { content: answer, streaming: false, mode: "offline", references });
+        updateStreamingMessage(setMessages, {
+          content: answer,
+          streaming: false,
+          mode: "offline",
+          references,
+        });
         setStatus("ready-offline");
       }
     } catch (error) {
       if (userCancelledRef.current) {
         updateStreamingMessage(setMessages, {
-          content: "Response cancelled. The conversation is ready for another question.",
+          content:
+            "Response cancelled. The conversation is ready for another question.",
           streaming: false,
           mode: "offline",
         });
-        setStatus(geminiAvailableRef.current ? "ready-gemini" : "ready-offline");
+        setStatus(
+          geminiAvailableRef.current ? "ready-gemini" : "ready-offline",
+        );
       } else {
+        geminiAvailableRef.current = false;
         setStatus("offline-fallback");
         const answer = `_Using offline portfolio mode._\n\n${answerFromPortfolio(content)}`;
         updateStreamingMessage(setMessages, { content: "", mode: "offline" });
         try {
           const fallbackController = new AbortController();
           controllerRef.current = fallbackController;
-          await streamOfflineAnswer(answer, fallbackController.signal, (value) =>
-            updateStreamingMessage(setMessages, { content: value, mode: "offline" }),
+          await streamOfflineAnswer(
+            answer,
+            fallbackController.signal,
+            (value) =>
+              updateStreamingMessage(setMessages, {
+                content: value,
+                mode: "offline",
+              }),
           );
-          updateStreamingMessage(setMessages, { content: answer, streaming: false, mode: "offline", references });
+          updateStreamingMessage(setMessages, {
+            content: answer,
+            streaming: false,
+            mode: "offline",
+            references,
+          });
         } catch {
           updateStreamingMessage(setMessages, {
             content: "The response was interrupted. Please try again.",

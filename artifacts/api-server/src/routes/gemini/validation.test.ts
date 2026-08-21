@@ -10,7 +10,9 @@ describe("Gemini chat validation", () => {
 
   it("requires non-empty content and bounds its length", () => {
     expect(normalizeChatPayload({ content: "   " })).toBeNull();
-    expect(normalizeChatPayload({ content: "a".repeat(2_000) })?.content).toHaveLength(1_500);
+    expect(
+      normalizeChatPayload({ content: "a".repeat(2_000) })?.content,
+    ).toHaveLength(1_500);
   });
 
   it("filters roles and bounds recent history", () => {
@@ -20,7 +22,13 @@ describe("Gemini chat validation", () => {
     }));
     const payload = normalizeChatPayload({ content: "hello", history });
     expect(payload?.history).toHaveLength(8);
-    expect(payload?.history.every((item) => item.role === "user" || item.role === "model")).toBe(true);
-    expect(payload?.history.some((item) => item.parts[0]?.text === "message-2")).toBe(false);
+    expect(
+      payload?.history.every(
+        (item) => item.role === "user" || item.role === "model",
+      ),
+    ).toBe(true);
+    expect(
+      payload?.history.some((item) => item.parts[0]?.text === "message-2"),
+    ).toBe(false);
   });
 });

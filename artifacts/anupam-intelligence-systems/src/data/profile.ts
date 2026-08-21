@@ -5,7 +5,8 @@ export const profile = {
   role: "AI/ML Analyst",
   company: "Accenture",
   email: "anupam020202@gmail.com",
-  headline: "AI/ML Analyst building production GenAI, RAG, and multi-agent systems",
+  headline:
+    "AI/ML Analyst building production GenAI, RAG, and multi-agent systems",
   positioning:
     "I build enterprise AI systems that turn documents, tickets, logs, and operational knowledge into real-time decisions.",
   narrative:
@@ -20,10 +21,26 @@ export const profileLinks: LinkItem[] = [
 ];
 
 export const portfolioMetrics: Metric[] = [
-  { value: "74", label: "Verified Certifications", detail: "PDF-backed and issuer-verifiable" },
-  { value: "180+", label: "Digital Badges", detail: "Credly cloud and AI badges" },
-  { value: "20%", label: "Faster Turnaround", detail: "Enterprise support workflows" },
-  { value: "50%", label: "Less SME Dependency", detail: "AI-assisted operational intelligence" },
+  {
+    value: "74",
+    label: "Verified Certifications",
+    detail: "PDF-backed and issuer-verifiable",
+  },
+  {
+    value: "180+",
+    label: "Digital Badges",
+    detail: "Credly cloud and AI badges",
+  },
+  {
+    value: "20%",
+    label: "Faster Turnaround",
+    detail: "Enterprise support workflows",
+  },
+  {
+    value: "50%",
+    label: "Less SME Dependency",
+    detail: "AI-assisted operational intelligence",
+  },
 ];
 
 export const executiveProofPoints = [

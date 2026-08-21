@@ -1,19 +1,20 @@
-# Anupam Roy Portfolio
+# Anupam Roy · Intelligence Systems Portfolio
 
-Recruiter-focused AI/ML engineering portfolio for Anupam Roy. The application presents production GenAI, RAG, multi-agent systems, backend engineering, cloud depth, verified certifications, and measurable enterprise impact without exposing client or internal system details.
+A recruiter-focused full-stack portfolio for Anupam Roy: AI/ML Analyst, production GenAI and RAG engineer, multi-agent systems builder, cloud practitioner, and backend engineer.
 
 Live site: [anupam-roy.vercel.app](https://anupam-roy.vercel.app/)
 
-## Product Goals
+## What this repository contains
 
-- Make production AI engineering proof easy to scan.
-- Keep every major section distinct and useful.
-- Provide interactive architecture views without fake live telemetry.
-- Offer a useful portfolio concierge with Gemini and offline fallback.
-- Keep contact delivery server-side and secrets out of the browser.
-- Remain fast, accessible, privacy-safe, and responsive.
+- A Vite + React + TypeScript frontend.
+- An Express + TypeScript API for contact delivery and the portfolio consultant.
+- A first-session cinematic entry signal plus one permanent hero—never two competing hero sections.
+- Proof-led Experience, Systems, Projects, Mastery, Achievements, Education, Contact, and Executive Brief surfaces.
+- Seventy-four credential records with matching local PDFs, thumbnails, and issuer links.
+- A Gemini-streaming consultant with deterministic offline portfolio fallback.
+- Accessibility, privacy, security-header, error-recovery, and deployment controls.
 
-## Architecture
+## Repository layout
 
 ```text
 .
@@ -22,67 +23,57 @@ Live site: [anupam-roy.vercel.app](https://anupam-roy.vercel.app/)
 |-- artifacts/
 |   |-- anupam-intelligence-systems/    # Vite + React frontend
 |   `-- api-server/                     # Express API
-|-- scripts/                            # Workspace utilities
+|-- scripts/                            # Source and release verification
 |-- .env.example
 |-- package.json
+|-- pnpm-lock.yaml
 |-- pnpm-workspace.yaml
 |-- tsconfig.base.json
 |-- tsconfig.json
 `-- vercel.json
 ```
 
-The frontend and API are separate workspace packages. In development, Vite proxies `/api` requests to Express. In production, Vercel serves the static frontend and rewrites `/api/*` to the Express function.
+The frontend and API are separate workspace packages. During development, Vite proxies `/api` to Express. In production, Vercel serves the static frontend and rewrites `/api/*` to the serverless Express entry.
 
-## Frontend Sections
+## Portfolio surfaces
 
-The page composition lives in `artifacts/anupam-intelligence-systems/src/pages/home.tsx`.
+The page composition is in `artifacts/anupam-intelligence-systems/src/pages/home.tsx`.
 
-- **Hero** - positioning, proof metrics, technology signals, and representative operations feed.
-- **About** - direct outcome-led narrative and skills.
-- **Experience** - privacy-safe interactive role console for AI/ML and software engineering work.
-- **Systems** - multi-agent architecture, incident correlation workflow, capabilities, and infrastructure stack.
-- **Projects** - one ranked project lab with architecture details and category filters.
-- **Mastery** - searchable certification vault with 74 PDFs and issuer verification links.
-- **Achievements** - Google Cloud and Credly milestones with proof links and images.
-- **Education** - compact academic foundation.
-- **Contact** - validated, honeypot-protected, rate-limited server-side email form.
-- **Portfolio Concierge** - Gemini streaming when configured, deterministic offline answers otherwise.
-- **Executive View** - focused hiring brief with internal scrolling and keyboard controls.
+- **Portfolio Entry Signal** — first-session opening sequence with replay control, reduced-motion bypass, and focus-safe modal behavior.
+- **Systems Provenance Atlas** — permanent hero with positioning, proof metrics, and operating-system signals.
+- **Operating Thesis** — outcome-led profile, delivery lanes, skills, and evidence.
+- **Operational AI Flight Recorder** — privacy-safe enterprise and backend experience.
+- **Systems Architecture** — static-first multi-agent workflow, RCA trace, capabilities, and infrastructure.
+- **Projects / AI Lab** — ranked project casefiles with architecture detail and category filters.
+- **The Mastery Constellation** — searchable credential vault with PDFs and issuer verification.
+- **Achievements** — CodeChef 5-Star / 2109 peak rating plus Credly and Google Cloud evidence.
+- **Recognition ledger** — selectable visual receipts without cross-column stretching.
+- **Education and Contact** — academic foundation and validated server-side contact delivery.
+- **Executive Brief** — focused recruiter view with internal scrolling and keyboard controls.
+- **Portfolio Consultant** — Gemini when available, portfolio-grounded offline answers otherwise.
 
-Structured portfolio content lives under:
+Structured profile content lives in:
 
 ```text
 artifacts/anupam-intelligence-systems/src/data/
 ```
 
-## Backend APIs
+## Requirements
 
-The API source lives in `artifacts/api-server/src`.
+- Node.js `>=22.12.0 <25`
+- pnpm `>=10 <11` (the repository pins `pnpm@10.34.5`)
 
-| Method | Route | Purpose |
-|---|---|---|
-| `GET` | `/api/healthz` | Health check |
-| `POST` | `/api/contact` | Validate and deliver contact messages with Resend |
-| `GET` | `/api/gemini/status` | Report Gemini or offline mode |
-| `POST` | `/api/gemini/chat` | Stream a stateless, portfolio-grounded Gemini response |
+## Local development
 
-The concierge API is intentionally stateless. It does not expose public conversation listing, reading, or deletion endpoints. The browser sends only a short recent-history window with each request.
+```bash
+corepack prepare pnpm@10.34.5 --activate
+pnpm install --frozen-lockfile
+pnpm run dev
+```
 
-## Security And Privacy
+Open `http://localhost:5173`. The API listens on `http://localhost:3001`.
 
-- API keys are read only from server environment variables.
-- Express disables its identifying header and applies Helmet security headers.
-- JSON request bodies are limited to 24 KB.
-- Contact and Gemini routes use bounded in-memory rate limiting.
-- Contact messages are escaped before HTML email rendering.
-- The contact form includes client and server validation plus a honeypot.
-- The Gemini system instruction limits answers to supplied portfolio facts.
-- Client names and internal system identifiers are intentionally excluded.
-- Public APIs use `Cache-Control: no-store` where responses may vary by configuration.
-
-For multi-instance production-grade distributed rate limiting, replace the in-memory limiter with a shared provider such as Upstash Redis.
-
-## Environment Variables
+## Environment variables
 
 Copy `.env.example` to `.env` for local development or configure the same values in Vercel:
 
@@ -96,90 +87,98 @@ GEMINI_API_KEY=
 GEMINI_MODEL=gemini-2.5-flash
 PORT=3001
 VITE_API_PROXY_TARGET=http://localhost:3001
+VITE_APP_RELEASE=
 ```
 
 Notes:
 
-- `GEMINI_API_KEY` is optional. Without it, the concierge uses offline portfolio intelligence.
+- `GEMINI_API_KEY` is optional. Without it, the consultant uses offline portfolio intelligence.
 - `RESEND_API_KEY` is required for real contact delivery.
-- `CONTACT_FROM_EMAIL` should use a verified Resend sender. The onboarding sender is suitable for Resend testing mode.
-- Never commit `.env` or expose server keys through `VITE_*` variables.
+- Use a verified Resend sender for production.
+- Never commit `.env` files or expose server keys through `VITE_*` variables.
 
-## Local Development
+## API routes
 
-Requirements:
+| Method | Route                | Purpose                                            |
+| ------ | -------------------- | -------------------------------------------------- |
+| `GET`  | `/api/healthz`       | Process health check                               |
+| `POST` | `/api/contact`       | Validate, rate-limit, and deliver contact messages |
+| `GET`  | `/api/gemini/status` | Report configured Gemini or offline mode           |
+| `POST` | `/api/gemini/chat`   | Stream a stateless, portfolio-grounded response    |
+| `POST` | `/api/client-error`  | Receive bounded browser diagnostics                |
 
-- Node.js 20+
-- pnpm 10+
+### Gemini fallback semantics
 
-Install and run:
+`/api/gemini/chat` begins an SSE response with HTTP 200 before the upstream model stream is consumed. If Gemini later returns a provider error such as 502, the server emits a safe stream error and closes normally; the browser then labels and serves the deterministic offline portfolio answer. A provider warning followed by an outer HTTP 200 is therefore a recovered upstream failure—not an application crash or a false Gemini success.
+
+The client disables further Gemini attempts for the current open consultant session after that failure. Closing and reopening the consultant performs a fresh availability check.
+
+## Security and privacy
+
+- API keys remain server-side.
+- Express disables its identifying header and applies Helmet policies.
+- Request bodies are bounded and routes are rate-limited.
+- Contact input is validated, honeypot-protected, and escaped before email rendering.
+- The Gemini system instruction is restricted to supplied portfolio facts.
+- Generated Markdown links are restricted to known portfolio/proof hosts, section anchors, and the public portfolio email.
+- Client names and internal system identifiers are intentionally excluded.
+- Certificate paths are disallowed in `robots.txt` and receive no-index headers.
+- Dialogs trap focus, restore focus, lock background interaction, and support Escape.
+
+For multi-instance distributed rate limiting, replace the in-memory limiter with a shared service such as Upstash Redis.
+
+## Complete release gate
+
+Run from the repository root:
 
 ```bash
-pnpm install
-pnpm run dev
-```
-
-Open `http://localhost:5173`.
-
-Build and serve the production bundle:
-
-```bash
-pnpm run build
-pnpm run start
-```
-
-Open `http://localhost:3001`.
-
-## Quality Gates
-
-```bash
+pnpm install --frozen-lockfile
+pnpm run verify:source
 pnpm run typecheck
+pnpm test
 pnpm run build
-pnpm run audit:prod
-pnpm dlx knip --reporter compact
+pnpm audit --prod
+pnpm -r why protobufjs
+pnpm -r why body-parser
+git diff --check
 ```
 
-API smoke checks:
+Expected dependency resolutions:
 
-```bash
-curl http://localhost:3001/api/healthz
-curl http://localhost:3001/api/gemini/status
-```
+- `protobufjs@7.6.5`
+- `body-parser@2.3.0`
 
-Contact validation can be checked without sending email:
+Do not deploy or merge if any required command fails.
 
-```bash
-curl -X POST http://localhost:3001/api/contact \
-  -H "Content-Type: application/json" \
-  -d "{}"
-```
+## Responsive smoke matrix
 
-## Certification Assets
+Validate at minimum:
 
-The Mastery Wall serves local certificate assets from:
+- 320 × 568 and 360 × 800
+- 390 × 844 and 430 × 932
+- 768 × 1024 and 820 × 1180
+- 1024 × 768
+- 1280 × 800, 1440 × 900, and a wide desktop
 
-```text
-artifacts/anupam-intelligence-systems/public/certs/
-artifacts/anupam-intelligence-systems/public/cert-thumbs/
-```
-
-Credential metadata and official verification links are defined in `src/data/certifications.ts`.
+Check the entry signal, fixed navigation, hero, architecture map, project casefiles, credential modal, recognition ledger, Executive Brief, consultant, contact form, footer, keyboard-only navigation, reduced motion, zoom to 200%, and both portrait and landscape orientations.
 
 ## Deployment
 
-`vercel.json` contains the production build and rewrite configuration:
+`vercel.json` installs the frozen lockfile, runs the production build, serves `artifacts/anupam-intelligence-systems/dist/public`, preserves real 404 behavior, applies security/cache headers, and rewrites only `/api/*` to `api/index.js`.
 
-1. Install the frozen pnpm lockfile.
-2. Typecheck and build the frontend and API.
-3. Serve the frontend output from `artifacts/anupam-intelligence-systems/dist/public`.
-4. Rewrite `/api/*` to `api/index.js`.
-5. Rewrite other paths to the SPA entry.
+After deployment, smoke-test:
 
-Configure production environment variables in Vercel before deployment.
+- `/`
+- a deliberately unknown path (must return the custom 404)
+- `/api/healthz`
+- `/api/gemini/status`
+- Gemini success and offline-fallback responses
+- contact validation and one real delivery
+- at least one credential PDF and one issuer link
+- keyboard focus, reduced motion, mobile menu, Executive Brief, and consultant
 
-## Content Rules
+## Repository policy
 
-- Describe enterprise work by capability, architecture, impact, and technology.
-- Do not add client names, internal project names, or private system identifiers.
-- Do not invent metrics, certifications, responsibilities, or project behavior.
-- Keep supported impact metrics limited to approximately 20% faster turnaround and 50% lower SME dependency.
+Keep source, tests, deployment configuration, `.env.example`, credential PDFs, thumbnails, and production imagery. Do not commit `node_modules`, build output, coverage, caches, logs, screenshots, local ZIPs, private environment files, or one-time release/hotfix reports.
+
+See `PRODUCTION_READINESS.md` for the release checklist and runtime interpretation.

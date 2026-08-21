@@ -29,6 +29,7 @@ export const suggestedPrompts = [
   "Which certifications are most relevant for cloud AI roles?",
   "Is he stronger in backend, GenAI, or cloud?",
   "Show his strongest projects.",
+  "What is his competitive programming record?",
   "Switch to executive summary.",
 ];
 
@@ -59,7 +60,16 @@ It supports PDF, DOCX, Excel, CSV, images, TXT, Markdown, and JSON. Retrieval co
 See the Projects / AI Lab section for the visual architecture card.`,
   },
   {
-    keywords: ["enterprise", "genai", "accenture", "experience", "incident", "servicenow", "release", "test"],
+    keywords: [
+      "enterprise",
+      "genai",
+      "accenture",
+      "experience",
+      "incident",
+      "servicenow",
+      "release",
+      "test",
+    ],
     answer: `## Enterprise GenAI experience
 
 At Accenture, Anupam built a **production enterprise operational AI platform** for support, incident, release, testing, and compliance workflows. The portfolio intentionally keeps client and internal system names private.
@@ -76,7 +86,16 @@ Core systems built:
 Measured impact: about 20% faster turnaround and about 50% lower SME dependency.`,
   },
   {
-    keywords: ["certification", "certifications", "cloud ai", "aws", "azure", "gcp", "google", "microsoft"],
+    keywords: [
+      "certification",
+      "certifications",
+      "cloud ai",
+      "aws",
+      "azure",
+      "gcp",
+      "google",
+      "microsoft",
+    ],
     answer: `## Most relevant certifications for cloud AI roles
 
 The strongest cloud AI signals are:
@@ -114,6 +133,21 @@ ${achievements.map((achievement) => `- **${achievement.title}:** ${achievement.p
 These are verified proof signals for consistent cloud learning and public credential depth.`,
   },
   {
+    keywords: [
+      "codechef",
+      "competitive programming",
+      "algorithm",
+      "rating",
+      "five star",
+      "5 star",
+    ],
+    answer: `## Competitive programming record
+
+Anupam reached the **CodeChef 5-Star tier** with a peak rating of **2109**. That practice reinforced data-structure selection, complexity analysis, debugging under time pressure, and disciplined problem decomposition.
+
+Profile: https://www.codechef.com/users/anupam_roy`,
+  },
+  {
     keywords: ["contact", "email", "linkedin", "github", "reach"],
     answer: `## Contact
 
@@ -133,7 +167,10 @@ export function answerFromPortfolio(query: string): string {
   let bestScore = 0;
 
   for (const entry of assistantKnowledge) {
-    const score = entry.keywords.reduce((total, keyword) => total + (normalized.includes(keyword) ? 1 : 0), 0);
+    const score = entry.keywords.reduce(
+      (total, keyword) => total + (normalized.includes(keyword) ? 1 : 0),
+      0,
+    );
     if (score > bestScore) {
       best = entry;
       bestScore = score;

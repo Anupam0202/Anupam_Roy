@@ -4,13 +4,19 @@ interface RateLimiterOptions {
   maxKeys?: number;
 }
 
-export function createRateLimiter({ limit, windowMs, maxKeys = 2_000 }: RateLimiterOptions) {
+export function createRateLimiter({
+  limit,
+  windowMs,
+  maxKeys = 2_000,
+}: RateLimiterOptions) {
   const buckets = new Map<string, number[]>();
   let checks = 0;
 
   function sweep(now: number) {
     for (const [key, timestamps] of buckets) {
-      const active = timestamps.filter((timestamp) => now - timestamp < windowMs);
+      const active = timestamps.filter(
+        (timestamp) => now - timestamp < windowMs,
+      );
       if (active.length === 0) buckets.delete(key);
       else buckets.set(key, active);
     }
@@ -27,7 +33,9 @@ export function createRateLimiter({ limit, windowMs, maxKeys = 2_000 }: RateLimi
     checks += 1;
     if (checks % 100 === 0 || buckets.size > maxKeys) sweep(now);
 
-    const active = (buckets.get(key) ?? []).filter((timestamp) => now - timestamp < windowMs);
+    const active = (buckets.get(key) ?? []).filter(
+      (timestamp) => now - timestamp < windowMs,
+    );
     if (active.length >= limit) {
       buckets.set(key, active);
       return true;

@@ -33,7 +33,9 @@ node_modules
 /coverage
 /libpeerconnection.log
 npm-debug.log
+pnpm-debug.log*
 yarn-error.log
+*.log
 testem.log
 /typings
 
@@ -48,11 +50,18 @@ Thumbs.db
 .cache/
 .local/
 .playwright-cli/
+/playwright-report/
+/test-results/
 .codex-logs/
 .superpowers/
+.pnpm-store/
 
 # Environment
 .env
 .env.*
 !.env.example
 .vercel
+
+# Local release packages and screenshots
+/Anupam_Roy-production-ready-*.zip
+/screenshots/

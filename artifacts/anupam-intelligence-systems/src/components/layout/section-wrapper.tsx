@@ -11,9 +11,7 @@ export default function SectionWrapper({
 }) {
   return (
     <section id={id} className={cn("relative py-20 md:py-32", className)}>
-      <div className="mx-auto w-[92%] max-w-7xl">
-        {children}
-      </div>
+      <div className="mx-auto w-[92%] max-w-7xl">{children}</div>
     </section>
   );
 }

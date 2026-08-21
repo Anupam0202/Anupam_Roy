@@ -1,5 +1,10 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
-
-createRoot(document.getElementById("root")!).render(<App />);
+type PortfolioWindow = Window & { __portfolioBootTimer?: number };
+const root = document.getElementById("root");
+if (!root) throw new Error("Portfolio root element was not found.");
+const timer = (window as PortfolioWindow).__portfolioBootTimer;
+if (timer !== undefined) window.clearTimeout(timer);
+document.documentElement.classList.add("app-mounted");
+createRoot(root).render(<App />);

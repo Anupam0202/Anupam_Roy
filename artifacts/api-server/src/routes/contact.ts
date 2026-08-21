@@ -3,7 +3,10 @@ import { Router, type IRouter, type Request, type Response } from "express";
 import { createRateLimiter } from "../lib/rate-limit";
 
 const router: IRouter = Router();
-const isContactRateLimited = createRateLimiter({ limit: 3, windowMs: 10 * 60_000 });
+const isContactRateLimited = createRateLimiter({
+  limit: 3,
+  windowMs: 10 * 60_000,
+});
 const DEFAULT_FROM_EMAIL = "Anupam Roy Portfolio <onboarding@resend.dev>";
 
 interface ContactBody {
@@ -51,41 +54,60 @@ function validateContact(body: ContactBody) {
 
 function isSenderDomainError(error: ResendEmailError) {
   const message = String(error.message ?? "").toLowerCase();
-  return error.statusCode === 403 && (message.includes("domain is not verified") || message.includes("verify your domain"));
+  return (
+    error.statusCode === 403 &&
+    (message.includes("domain is not verified") ||
+      message.includes("verify your domain"))
+  );
 }
 
 function getSandboxRecipient(error: ResendEmailError) {
   const message = String(error.message ?? "");
-  if (error.statusCode !== 403 || !message.toLowerCase().includes("only send testing emails")) return null;
+  if (
+    error.statusCode !== 403 ||
+    !message.toLowerCase().includes("only send testing emails")
+  )
+    return null;
   return message.match(/own email address \(([^)]+)\)/i)?.[1]?.trim() ?? null;
 }
 
 router.post("/contact", async (req: Request, res: Response) => {
   res.setHeader("Cache-Control", "no-store");
   if (!req.is("application/json")) {
-    return void res.status(415).json({ error: "Content-Type must be application/json." });
+    return void res
+      .status(415)
+      .json({ error: "Content-Type must be application/json." });
   }
 
   const body = (req.body ?? {}) as ContactBody;
-  if (normalizeField(body.company, 120)) return void res.status(200).json({ ok: true });
+  if (normalizeField(body.company, 120))
+    return void res.status(200).json({ ok: true });
 
   const ip = req.ip ?? req.socket.remoteAddress ?? "unknown";
   if (isContactRateLimited(ip)) {
-    return void res.status(429).json({ error: "Too many contact attempts. Please wait a few minutes and try again." });
+    res.setHeader("Retry-After", "600");
+    return void res.status(429).json({
+      error:
+        "Too many contact attempts. Please wait a few minutes and try again.",
+    });
   }
 
   const parsed = validateContact(body);
-  if ("error" in parsed) return void res.status(400).json({ error: parsed.error });
+  if ("error" in parsed)
+    return void res.status(400).json({ error: parsed.error });
 
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     req.log.warn({ route: "contact" }, "RESEND_API_KEY is missing");
-    return void res.status(503).json({ error: "Contact email service is not configured on the server." });
+    return void res.status(503).json({
+      error: "Contact email service is not configured on the server.",
+    });
   }
 
   const to = process.env.CONTACT_TO_EMAIL?.trim() || "anupam020202@gmail.com";
   const from = process.env.CONTACT_FROM_EMAIL?.trim() || DEFAULT_FROM_EMAIL;
-  const fallbackFrom = process.env.CONTACT_FALLBACK_FROM_EMAIL?.trim() || DEFAULT_FROM_EMAIL;
+  const fallbackFrom =
+    process.env.CONTACT_FALLBACK_FROM_EMAIL?.trim() || DEFAULT_FROM_EMAIL;
   const sandboxTo = process.env.RESEND_SANDBOX_TO_EMAIL?.trim();
   const timestamp = new Date().toISOString();
   const resend = new Resend(apiKey);
@@ -127,21 +149,31 @@ router.post("/contact", async (req: Request, res: Response) => {
       ({ data, error } = await sendMessage(fallbackFrom, deliveredTo));
     }
 
-    const fallbackRecipient = error ? sandboxTo || getSandboxRecipient(error) : null;
+    const fallbackRecipient = error
+      ? sandboxTo || getSandboxRecipient(error)
+      : null;
     if (error && fallbackRecipient && fallbackRecipient !== deliveredTo) {
       deliveredTo = fallbackRecipient;
       ({ data, error } = await sendMessage(fallbackFrom, deliveredTo));
     }
 
     if (error) {
-      req.log.error({ statusCode: error.statusCode, name: error.name }, "Resend contact request failed");
-      return void res.status(502).json({ error: "Email delivery is temporarily unavailable. Please email Anupam directly." });
+      req.log.error(
+        { statusCode: error.statusCode, name: error.name },
+        "Resend contact request failed",
+      );
+      return void res.status(502).json({
+        error:
+          "Email delivery is temporarily unavailable. Please email Anupam directly.",
+      });
     }
 
     res.json({ ok: true, id: data?.id });
   } catch (error) {
     req.log.error({ error }, "Contact email request failed");
-    res.status(502).json({ error: "Contact email could not be sent. Please try again later." });
+    res.status(502).json({
+      error: "Contact email could not be sent. Please email Anupam directly.",
+    });
   }
 });
 

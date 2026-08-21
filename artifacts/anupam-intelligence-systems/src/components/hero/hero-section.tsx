@@ -1,212 +1,288 @@
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import {
+  ArrowRight,
+  BrainCircuit,
+  CheckCircle2,
+  Database,
+  Github,
+  Mail,
+  Play,
+  ShieldCheck,
+  Workflow,
+  type LucideIcon,
+} from "lucide-react";
 import GridBackground from "@/components/shared/grid-background";
-import NeuralParticles from "@/components/shared/neural-particles";
-import LiveStatus from "@/components/ui/live-status";
-import TelemetryStrip from "@/components/telemetry/telemetry-strip";
-import MagneticButton from "@/components/motion/magnetic-button";
 
-const identities = [
-  "Building Autonomous AI Systems",
-  "Enterprise Retrieval Architect",
-  "Multi-Agent Intelligence Engineer",
-  "Production GenAI Infrastructure",
-  "Cloud-Native AI Systems Builder",
+const proof = [
+  { value: "~20%", label: "faster operational turnaround" },
+  { value: "~50%", label: "lower SME dependency" },
+  { value: "74", label: "credential records with issuer proof" },
+];
+const capabilities = [
+  "LangGraph",
+  "RAG",
+  "Multi-agent systems",
+  "Python",
+  "Cloud AI",
+  "Vector search",
+  "Backend engineering",
+];
+const systemLanes: Array<{
+  title: string;
+  label: string;
+  icon: LucideIcon;
+  detail: string;
+  evidence: string;
+}> = [
+  {
+    title: "Inputs",
+    label: "Operational knowledge",
+    icon: Database,
+    detail:
+      "Tickets, documentation, repositories, observability logs, structured data, and enterprise knowledge sources.",
+    evidence: "Jira · Confluence · SharePoint · GitHub · Splunk · SQL",
+  },
+  {
+    title: "Reasoning",
+    label: "Grounded orchestration",
+    icon: BrainCircuit,
+    detail:
+      "Intent routing, semantic retrieval, specialist-agent coordination, historical correlation, and source-grounded generation.",
+    evidence: "LangGraph · LangChain · RAG · Vector search",
+  },
+  {
+    title: "Action",
+    label: "Operational execution",
+    icon: Workflow,
+    detail:
+      "Incident assistance, release intelligence, test generation, ITSM workflows, SQL analysis, and audit-ready reporting.",
+    evidence: "ServiceNow · Selenium · UFT · Karate · Python",
+  },
+  {
+    title: "Governance",
+    label: "Human-controlled delivery",
+    icon: ShieldCheck,
+    detail:
+      "Public-safe architecture, explicit human review, traceable evidence, quality controls, and bounded automation.",
+    evidence: "Human review · Citations · Quality gates · Compliance",
+  },
 ];
 
-const techChips = [
-  "LangGraph", "RAG", "Multi-Agent", "Vector Search", "Gemini", "FastAPI", "LangChain",
-];
-
-const eventStream = [
-  { text: "Incident classified | operational priority detected", color: "#F59E0B", tag: "INCIDENT" },
-  { text: "RCA workflow | historical correlations retrieved", color: "#00F5D4", tag: "RCA" },
-  { text: "Release intelligence | deployment brief prepared", color: "#4ADE80", tag: "RELEASE" },
-  { text: "Hybrid retrieval | evidence ranked and cited", color: "#38BDF8", tag: "RETRIEVAL" },
-  { text: "Agent routed | ITSM payload prepared", color: "#A78BFA", tag: "AUTOMATION" },
-  { text: "SQL analysis | impacted tables identified", color: "#F97316", tag: "DATA" },
-  { text: "Compliance workflow | audit package prepared", color: "#EC4899", tag: "COMPLIANCE" },
-  { text: "Test generation | automation scripts drafted", color: "#00F5D4", tag: "TESTING" },
-];
-
-function LiveOrchestrationCore() {
-  const [visibleEvents, setVisibleEvents] = useState<typeof eventStream>([]);
-  const idxRef = useRef(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const ev = eventStream[idxRef.current % eventStream.length];
-      idxRef.current += 1;
-      setVisibleEvents((prev) => [...prev, ev].slice(-4));
-    }, 1800);
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <div className="glass relative h-full w-full overflow-hidden rounded-[1.5rem] md:rounded-[2rem] border border-white/10">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-secondary/8" aria-hidden="true" />
-      <LiveStatus />
-
-      <p className="absolute top-5 left-5 max-w-[12rem] text-[9px] font-mono text-primary/60 tracking-widest uppercase z-10 select-none">
-        AI Orchestration Core
-      </p>
-
-      {/* Central pulsing orb */}
-      <div className="absolute left-1/2 top-[40%] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-10" aria-hidden="true">
-        <div className="absolute h-56 w-56 rounded-full border border-primary/8" style={{ animation: "pulse 3.6s ease-in-out infinite", animationDelay: "0.6s" }} />
-        <div className="absolute h-40 w-40 rounded-full border border-primary/15" style={{ animation: "pulse 2.8s ease-in-out infinite", animationDelay: "0.3s" }} />
-        <div className="absolute h-24 w-24 rounded-full border border-primary/40 bg-primary/10" style={{ animation: "pulse 2s ease-in-out infinite" }} />
-        <div className="relative z-10 h-24 w-24 rounded-full border border-primary/50 bg-primary/15 backdrop-blur-xl flex flex-col items-center justify-center shadow-[0_0_40px_rgba(0,245,212,0.3)]">
-          <div className="absolute inset-3 animate-pulse rounded-full bg-primary/20" />
-          <span className="relative z-10 text-[8px] font-display font-bold tracking-[0.2em] text-primary uppercase">CORE</span>
-          <span className="relative z-10 text-[7px] text-primary/60 font-mono mt-0.5">ACTIVE</span>
-        </div>
-      </div>
-
-      {/* Live event stream */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
-        <p className="text-[8px] uppercase tracking-widest text-white/30 font-mono mb-2 select-none">Live Operations</p>
-        <div className="flex flex-col gap-1.5 overflow-hidden" style={{ maxHeight: 160 }}>
-          <AnimatePresence initial={false}>
-            {visibleEvents.map((ev, i) => (
-              <motion.div
-                key={`${ev.tag}-${i}`}
-                initial={{ opacity: 0, x: -10, height: 0 }}
-                animate={{ opacity: 1, x: 0, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.25 }}
-                className="flex items-center gap-2 rounded-lg bg-black/30 border border-white/5 px-3 py-1.5"
-              >
-                <span className="text-[8px] font-mono px-1.5 py-0.5 rounded flex-shrink-0" style={{ color: ev.color, backgroundColor: `${ev.color}18` }}>
-                  {ev.tag}
-                </span>
-                <span className="text-[9px] text-white/50 font-mono truncate">{ev.text}</span>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-      </div>
-
-      <span className="absolute bottom-4 right-4 text-[9px] font-mono text-muted-foreground/30 tracking-widest z-10 select-none">v2.4.1</span>
-    </div>
-  );
+interface HeroSectionProps {
+  onReplayEntry?: () => void;
 }
 
-export default function HeroSection() {
-  const [identityIdx, setIdentityIdx] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIdentityIdx((i) => (i + 1) % identities.length);
-    }, 2800);
-    return () => clearInterval(interval);
-  }, []);
-
+export default function HeroSection({ onReplayEntry }: HeroSectionProps) {
+  const [activeLane, setActiveLane] = useState(1);
+  const reducedMotion = useReducedMotion();
+  const lane = systemLanes[activeLane];
+  const LaneIcon = lane.icon;
   return (
-    <section id="hero" className="relative min-h-[100svh] overflow-hidden">
+    <section
+      id="hero"
+      className="relative overflow-hidden pb-20 pt-28 sm:pt-36 lg:min-h-[100svh] lg:pb-24"
+    >
       <GridBackground />
-      <NeuralParticles />
-
-      <div className="relative z-10 mx-auto flex w-[92%] max-w-7xl flex-col items-center justify-between gap-10 pb-8 pt-28 sm:pt-36 md:pb-36 lg:gap-12 lg:pb-32 xl:flex-row xl:gap-16">
-
-        {/* LEFT — identity */}
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_25%,rgba(45,212,191,0.13),transparent_36%),radial-gradient(circle_at_84%_64%,rgba(56,189,248,0.09),transparent_34%)]"
+        aria-hidden="true"
+      />
+      <div className="relative z-10 mx-auto grid w-[92%] max-w-7xl gap-10 lg:grid-cols-[minmax(0,1.02fr)_minmax(420px,0.98fr)] lg:items-center lg:gap-14">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={reducedMotion ? false : { opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-2xl flex-shrink-0"
+          transition={{ duration: reducedMotion ? 0 : 0.65 }}
+          className="max-w-3xl"
         >
-          {/* Status badge — personal, no employer */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-            className="mb-5 inline-flex items-center gap-2 rounded-full glass px-3 py-1.5 text-[11px] font-medium text-primary tracking-widest uppercase"
-          >
-            <span className="relative flex h-2 w-2 flex-shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+          <div className="mb-6 inline-flex min-h-10 items-center gap-2 rounded-full border border-primary/25 bg-primary/[0.08] px-4 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+            <span
+              className="h-2 w-2 rounded-full bg-primary"
+              aria-hidden="true"
+            />
+            Production AI systems · Public-safe portfolio
+          </div>
+          <h1 className="font-display text-[2.85rem] font-bold leading-[0.98] text-white sm:text-6xl md:text-7xl">
+            <span className="block">Anupam Roy</span>
+            <span className="mt-3 block text-gradient">
+              Intelligence systems that move work forward.
             </span>
-            AI/ML Analyst - Production GenAI Systems
-          </motion.div>
-
-          {/* Rotating identity tagline */}
-          <div className="mb-3 h-8 overflow-hidden">
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={identityIdx}
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -14 }}
-                transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                className="text-[11px] sm:text-xs font-mono tracking-[0.28em] uppercase text-primary/65"
-              >
-                {identities[identityIdx]}
-              </motion.p>
-            </AnimatePresence>
-          </div>
-
-          {/* Name + title — hero identity */}
-          <h1 className="font-display leading-[1.05] text-white">
-            <span className="text-[2.8rem] sm:text-6xl md:text-7xl font-bold block tracking-normal">Anupam Roy</span>
-            <span className="text-2xl sm:text-4xl md:text-5xl font-semibold text-gradient block mt-2">AI/ML Analyst</span>
           </h1>
-
-          {/* Skill-focused description — zero employer branding */}
-          <p className="mt-6 max-w-xl text-base sm:text-lg leading-relaxed text-muted-foreground">
-            I design and ship production-grade AI systems: multi-agent orchestration, enterprise RAG pipelines, and cloud-native intelligence that reduce manual bottlenecks at scale.
+          <p className="mt-7 max-w-2xl text-base leading-relaxed text-white/72 sm:text-lg">
+            I build production GenAI systems that turn fragmented operational
+            knowledge into grounded decisions, governed actions, and measurable
+            support outcomes.
           </p>
-
-          {/* CTAs */}
-          <div className="mt-8 flex flex-wrap gap-3 sm:gap-4">
-            <MagneticButton>
-              <a
-                href="#systems"
-                data-testid="button-explore-systems"
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-6 sm:px-7 py-3.5 sm:py-4 text-sm font-semibold text-black glow transition-all hover:scale-[1.03] hover:shadow-[0_0_80px_rgba(0,245,212,0.25)]"
-              >
-                Explore Systems
-                <ArrowRight className="w-4 h-4" />
-              </a>
-            </MagneticButton>
-            <MagneticButton>
-              <a
-                href="#certifications"
-                data-testid="button-view-certs"
-                className="glass inline-flex items-center rounded-full px-6 sm:px-7 py-3.5 sm:py-4 text-sm font-medium transition hover:bg-white/10"
-              >
-                74 Certifications
-              </a>
-            </MagneticButton>
+          <div className="mt-7 flex flex-wrap gap-3">
+            <a
+              href="#experience"
+              className="inline-flex min-h-12 items-center gap-2 rounded-full bg-primary px-6 text-sm font-bold text-[#03110e] transition hover:bg-[#6ee7d5]"
+            >
+              Inspect my experience
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </a>
+            <a
+              href="#projects"
+              className="inline-flex min-h-12 items-center rounded-full border border-white/15 bg-white/[0.035] px-6 text-sm font-semibold text-white transition hover:bg-white/[0.07]"
+            >
+              View selected systems
+            </a>
+            <a
+              href="mailto:anupam020202@gmail.com"
+              className="inline-flex min-h-12 items-center gap-2 rounded-full border border-white/15 px-5 text-sm font-semibold text-white/80 transition hover:text-white"
+            >
+              <Mail className="h-4 w-4" aria-hidden="true" />
+              Contact
+            </a>
           </div>
-
-          {/* Tech stack chips */}
-          <div className="mt-8 flex flex-wrap gap-2" aria-label="Core technologies">
-            {techChips.map((chip, i) => (
-              <span
-                key={chip}
-                className="text-[10px] px-3 py-1.5 rounded-full border border-primary/15 bg-primary/5 text-primary/60 font-mono tracking-widest uppercase"
-                style={{ animation: `float ${3 + (i % 3) * 0.7}s ease-in-out infinite`, animationDelay: `${i * 0.4}s` }}
+          <dl className="mt-9 grid gap-3 sm:grid-cols-3">
+            {proof.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-white/10 bg-white/[0.035] p-4"
               >
-                {chip}
+                <dd className="font-display text-3xl font-bold text-white">
+                  {item.value}
+                </dd>
+                <dt className="mt-2 text-sm leading-snug text-white/65">
+                  {item.label}
+                </dt>
+              </div>
+            ))}
+          </dl>
+          <div
+            className="mt-7 flex flex-wrap gap-2"
+            aria-label="Core capabilities"
+          >
+            {capabilities.map((item) => (
+              <span
+                key={item}
+                className="rounded-full border border-white/10 bg-black/15 px-3 py-1.5 text-xs font-medium text-white/70"
+              >
+                {item}
               </span>
             ))}
           </div>
+          {onReplayEntry && (
+            <button
+              type="button"
+              onClick={onReplayEntry}
+              className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-full border border-white/10 bg-black/15 px-4 text-xs font-semibold text-white/58 transition hover:border-primary/30 hover:text-primary"
+            >
+              <Play className="h-4 w-4" aria-hidden="true" />
+              Replay opening signal
+            </button>
+          )}
         </motion.div>
-
-        {/* RIGHT — live orchestration panel (hidden on small mobile, shown tablet+) */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.88 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
-          className="hidden sm:block relative h-[440px] md:h-[500px] w-full max-w-lg"
+        <motion.aside
+          initial={reducedMotion ? false : { opacity: 0, x: 22 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: reducedMotion ? 0 : 0.7 }}
+          className="overflow-hidden rounded-[2rem] border border-white/12 bg-[#07110f]/88 shadow-[0_30px_100px_rgba(0,0,0,0.4)]"
+          aria-labelledby="system-provenance-title"
         >
-          <LiveOrchestrationCore />
-        </motion.div>
+          <div className="border-b border-white/10 px-5 py-4 sm:px-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                  Signature system map
+                </p>
+                <h2
+                  id="system-provenance-title"
+                  className="mt-1 font-display text-2xl font-bold text-white"
+                >
+                  Systems Provenance Atlas
+                </h2>
+              </div>
+              <span className="rounded-full border border-white/10 bg-white/[0.035] px-3 py-1.5 text-xs text-white/65">
+                Representative · not live
+              </span>
+            </div>
+          </div>
+          <div className="p-4 sm:p-6">
+            <div
+              className="grid grid-cols-2 gap-2 sm:grid-cols-4"
+              role="tablist"
+              aria-label="Operational AI system lanes"
+            >
+              {systemLanes.map((item, index) => {
+                const Icon = item.icon;
+                const selected = index === activeLane;
+                return (
+                  <button
+                    key={item.title}
+                    type="button"
+                    role="tab"
+                    aria-selected={selected}
+                    aria-controls="system-lane-panel"
+                    id={`system-lane-${index}`}
+                    onClick={() => setActiveLane(index)}
+                    className={`min-h-24 rounded-2xl border p-3 text-left transition ${selected ? "border-primary/45 bg-primary/[0.11] text-white" : "border-white/8 bg-white/[0.025] text-white/60 hover:text-white"}`}
+                  >
+                    <Icon
+                      className={`h-5 w-5 ${selected ? "text-primary" : "text-white/45"}`}
+                      aria-hidden="true"
+                    />
+                    <span className="mt-3 block text-sm font-semibold">
+                      {item.title}
+                    </span>
+                    <span className="mt-1 block text-xs leading-snug text-white/55">
+                      {item.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <div
+              id="system-lane-panel"
+              role="tabpanel"
+              aria-labelledby={`system-lane-${activeLane}`}
+              className="mt-4 rounded-3xl border border-primary/18 bg-primary/[0.055] p-5 sm:p-6"
+            >
+              <div className="flex items-start gap-4">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-primary/25 bg-primary/10 text-primary">
+                  <LaneIcon className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                    {lane.title}
+                  </p>
+                  <h3 className="mt-1 font-display text-xl font-bold text-white">
+                    {lane.label}
+                  </h3>
+                </div>
+              </div>
+              <p className="mt-4 text-sm leading-relaxed text-white/72">
+                {lane.detail}
+              </p>
+              <p className="mt-4 border-t border-white/10 pt-4 text-xs leading-relaxed text-white/58">
+                {lane.evidence}
+              </p>
+            </div>
+            <div className="mt-4 flex items-start gap-3 rounded-2xl border border-white/8 bg-black/20 p-4">
+              <CheckCircle2
+                className="mt-0.5 h-4 w-4 shrink-0 text-primary"
+                aria-hidden="true"
+              />
+              <p className="text-xs leading-relaxed text-white/62">
+                Client and internal identifiers are intentionally generalized
+                while ownership, technology patterns, and reported outcomes
+                remain explicit.
+              </p>
+            </div>
+            <a
+              href="https://github.com/Anupam0202/"
+              target="_blank"
+              rel="noreferrer"
+              className="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary transition hover:text-white"
+            >
+              <Github className="h-4 w-4" aria-hidden="true" />
+              Review public engineering work
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </a>
+          </div>
+        </motion.aside>
       </div>
-
-      <TelemetryStrip />
     </section>
   );
 }

@@ -1,7 +1,18 @@
 const metadata = [
-  "LangGraph", "LangChain", "RAG Pipelines", "PostgreSQL",
-  "ITSM APIs", "Ticketing APIs", "Gemini API", "Vector Search", "Python",
-  "FastAPI", "Docker", "AWS", "GCP", "Azure",
+  "LangGraph",
+  "LangChain",
+  "RAG Pipelines",
+  "PostgreSQL",
+  "ITSM APIs",
+  "Ticketing APIs",
+  "Gemini API",
+  "Vector Search",
+  "Python",
+  "FastAPI",
+  "Docker",
+  "AWS",
+  "GCP",
+  "Azure",
 ];
 
 export default function SystemMetadata() {

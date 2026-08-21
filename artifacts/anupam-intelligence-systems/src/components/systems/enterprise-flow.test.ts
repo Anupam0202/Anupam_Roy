@@ -21,6 +21,8 @@ describe("enterprise flow responsive model", () => {
     const renderedIds = mobileFlowStages.flatMap((stage) => stage.nodeIds);
     expect(renderedIds).toHaveLength(flowNodes.length);
     expect(new Set(renderedIds).size).toBe(flowNodes.length);
-    expect(renderedIds.toSorted()).toEqual(flowNodes.map((node) => node.id).toSorted());
+    expect(renderedIds.toSorted()).toEqual(
+      flowNodes.map((node) => node.id).toSorted(),
+    );
   });
 });

@@ -41,9 +41,10 @@ Projects:
 - RAG, Contextual-RAG-Chatbot, Handwritten-Chemical_Compound-Detection, and frontend experiments
 
 Certifications and achievements:
-- 74 verified certifications with PDFs and issuer links
+- 74 credential records with local PDFs, issuer links, and lifecycle status derived from listed dates
 - 180+ Credly badges
 - AWS, Google Cloud, Microsoft, Snowflake, Databricks, Anthropic, and MongoDB
+- CodeChef 5-Star tier with a peak rating of 2109
 
 Contact:
 - Email: anupam020202@gmail.com
@@ -69,28 +70,45 @@ router.get("/gemini/status", (_req: Request, res: Response) => {
 router.post("/gemini/chat", async (req: Request, res: Response) => {
   res.setHeader("Cache-Control", "no-store");
   if (!isJsonContentType(req.get("content-type"))) {
-    return void res.status(415).json({ error: "Content-Type must be application/json." });
+    return void res
+      .status(415)
+      .json({ error: "Content-Type must be application/json." });
   }
   if (isChatRateLimited(clientKey(req))) {
-    return void res.status(429).json({ error: "Assistant rate limit reached. Continue with offline portfolio mode." });
+    res.setHeader("Retry-After", "60");
+    return void res.status(429).json({
+      error:
+        "Assistant rate limit reached. Continue with offline portfolio mode.",
+    });
   }
 
   const payload = normalizeChatPayload(req.body);
-  if (!payload) return void res.status(400).json({ error: "Message content is required." });
+  if (!payload)
+    return void res.status(400).json({ error: "Message content is required." });
 
   const client = getGeminiClient();
-  if (!client) return void res.status(503).json({ error: "Gemini is not configured. Continue with offline portfolio mode." });
+  if (!client)
+    return void res.status(503).json({
+      error: "Gemini is not configured. Continue with offline portfolio mode.",
+    });
 
   res.status(200);
   res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
   res.setHeader("Connection", "keep-alive");
   res.setHeader("X-Accel-Buffering", "no");
   res.flushHeaders();
+  let clientDisconnected = false;
+  res.once("close", () => {
+    if (!res.writableEnded) clientDisconnected = true;
+  });
 
   try {
     const stream = await client.models.generateContentStream({
       model: process.env.GEMINI_MODEL ?? "gemini-2.5-flash",
-      contents: [...payload.history, { role: "user", parts: [{ text: payload.content }] }],
+      contents: [
+        ...payload.history,
+        { role: "user", parts: [{ text: payload.content }] },
+      ],
       config: {
         systemInstruction: SYSTEM_PROMPT,
         maxOutputTokens: 1_200,
@@ -99,14 +117,26 @@ router.post("/gemini/chat", async (req: Request, res: Response) => {
     });
 
     for await (const chunk of stream) {
-      if (chunk.text) res.write(`data: ${JSON.stringify({ content: chunk.text, mode: "gemini" })}\n\n`);
+      if (clientDisconnected || res.writableEnded) break;
+      if (chunk.text)
+        res.write(
+          `data: ${JSON.stringify({ content: chunk.text, mode: "gemini" })}\n\n`,
+        );
     }
 
-    res.write(`data: ${JSON.stringify({ done: true, mode: "gemini" })}\n\n`);
-    res.end();
+    if (!clientDisconnected && !res.writableEnded) {
+      res.write(`data: ${JSON.stringify({ done: true, mode: "gemini" })}\n\n`);
+      res.end();
+    }
   } catch (error) {
-    req.log.warn({ error }, "Gemini generation failed");
-    res.write(`data: ${JSON.stringify({ error: "Gemini generation failed. Continue with offline portfolio mode.", mode: "offline" })}\n\n`);
+    req.log.warn(
+      { error, fallbackMode: "client-offline-portfolio" },
+      "Gemini provider unavailable; client fallback engaged",
+    );
+    if (clientDisconnected || res.writableEnded) return;
+    res.write(
+      `data: ${JSON.stringify({ error: "Gemini generation failed. Continue with offline portfolio mode.", mode: "offline" })}\n\n`,
+    );
     res.write(`data: ${JSON.stringify({ done: true, mode: "offline" })}\n\n`);
     res.end();
   }

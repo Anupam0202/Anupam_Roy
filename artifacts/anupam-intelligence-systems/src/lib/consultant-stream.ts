@@ -21,7 +21,10 @@ function parseFrame(frame: string): ConsultantStreamEvent[] {
         error?: unknown;
         mode?: unknown;
       };
-      const mode = payload.mode === "gemini" || payload.mode === "offline" ? payload.mode : undefined;
+      const mode =
+        payload.mode === "gemini" || payload.mode === "offline"
+          ? payload.mode
+          : undefined;
       if (typeof payload.content === "string" && payload.content) {
         events.push({ type: "content", content: payload.content, mode });
       }

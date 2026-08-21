@@ -53,7 +53,7 @@
   --font-sans: var(--app-font-sans);
   --font-serif: var(--app-font-serif);
   --font-mono: var(--app-font-mono);
-  --font-display: "Space Grotesk", var(--app-font-sans);
+  --font-display: "Trebuchet MS", var(--app-font-sans);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -62,11 +62,11 @@
 }
 
 :root {
-  --button-outline: rgba(255,255,255, .10);
-  --badge-outline: rgba(255,255,255, .05);
+  --button-outline: rgba(255, 255, 255, 0.1);
+  --badge-outline: rgba(255, 255, 255, 0.05);
   --opaque-button-border-intensity: 9;
-  --elevate-1: rgba(255,255,255, .04);
-  --elevate-2: rgba(255,255,255, .09);
+  --elevate-1: rgba(255, 255, 255, 0.04);
+  --elevate-2: rgba(255, 255, 255, 0.09);
 
   --background: 168 38% 5%;
   --foreground: 220 13% 91%;
@@ -107,10 +107,11 @@
   --input: 164 28% 9%;
   --ring: 166 84% 52%;
 
-  --app-font-sans: 'Inter', sans-serif;
-  --app-font-serif: Georgia, serif;
-  --app-font-mono: Menlo, monospace;
-  --radius: .5rem;
+  --app-font-sans: "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+  --app-font-serif: Georgia, "Times New Roman", serif;
+  --app-font-mono:
+    "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  --radius: 0.5rem;
 
   --sidebar-primary-border: hsl(var(--sidebar-primary));
   --sidebar-accent-border: hsl(var(--sidebar-accent));
@@ -173,32 +174,43 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 .grid-background {
   background-image:
-    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-    linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px);
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
   background-size: 80px 80px;
 }
 
 .glass {
-  background: rgba(255,255,255,0.04);
+  background: rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .text-gradient {
-  background: linear-gradient(to right, #2DD4BF, #F59E0B, #7DD3FC);
+  background: linear-gradient(to right, #2dd4bf, #f59e0b, #7dd3fc);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .glow {
-  box-shadow: 0 0 60px rgba(0,245,212,0.12);
+  box-shadow: 0 0 60px rgba(0, 245, 212, 0.12);
 }
 
 ::selection {
-  background: rgba(0,245,212,0.2);
+  background: rgba(0, 245, 212, 0.2);
   color: white;
 }
 
@@ -214,7 +226,59 @@ canvas {
 
 html,
 body {
-  overflow-x: hidden;
+  overflow-x: clip;
+}
+
+html {
+  scroll-padding-top: 6rem;
+}
+
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: 0.75rem;
+  z-index: 500;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 1rem;
+  border-radius: 999px;
+  background: #5eead4;
+  color: #03110e;
+  font-size: 0.875rem;
+  font-weight: 700;
+  transform: translateY(-160%);
+  transition: transform 160ms ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.consult-trigger {
+  right: max(0.75rem, env(safe-area-inset-right));
+  bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+.consult-dialog {
+  top: max(0.5rem, env(safe-area-inset-top));
+  right: max(0.5rem, env(safe-area-inset-right));
+  bottom: max(0.5rem, env(safe-area-inset-bottom));
+  left: max(0.5rem, env(safe-area-inset-left));
+}
+
+@media (min-width: 640px) {
+  .consult-trigger {
+    right: max(2rem, env(safe-area-inset-right));
+    bottom: max(2rem, env(safe-area-inset-bottom));
+  }
+
+  .consult-dialog {
+    top: auto;
+    right: max(2rem, env(safe-area-inset-right));
+    bottom: max(2rem, env(safe-area-inset-bottom));
+    left: auto;
+  }
 }
 
 /* Accessibility focus ring */
@@ -222,20 +286,22 @@ button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid #00F5D4;
+  outline: 2px solid #00f5d4;
   outline-offset: 2px;
 }
 
 .contact-input {
   width: 100%;
   border-radius: 1rem;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
   padding: 0.875rem 1rem;
   color: white;
   font-size: 0.875rem;
   outline: none;
-  transition: border-color 160ms ease, background 160ms ease;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease;
 }
 
 .contact-input-with-icon {
@@ -243,16 +309,16 @@ textarea:focus-visible {
 }
 
 .contact-input::placeholder {
-  color: rgba(255,255,255,0.28);
+  color: rgba(255, 255, 255, 0.28);
 }
 
 .contact-input:hover {
-  border-color: rgba(255,255,255,0.16);
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
 .contact-input:focus {
-  border-color: rgba(45,212,191,0.55);
-  background: rgba(255,255,255,0.055);
+  border-color: rgba(45, 212, 191, 0.55);
+  background: rgba(255, 255, 255, 0.055);
 }
 
 /* Glass card inner highlight */
@@ -276,7 +342,12 @@ textarea:focus-visible {
   left: -150%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.06),
+    transparent
+  );
   transition: left 0.8s ease;
   pointer-events: none;
   z-index: 1;
@@ -287,12 +358,13 @@ textarea:focus-visible {
 }
 
 /* Typography rhythm */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   letter-spacing: 0;
-}
-
-[class*="tracking-"] {
-  letter-spacing: 0 !important;
 }
 
 p {
@@ -302,7 +374,7 @@ p {
 /* Custom scrollbar */
 html {
   scrollbar-width: thin;
-  scrollbar-color: rgba(0,245,212,0.4) transparent;
+  scrollbar-color: rgba(0, 245, 212, 0.4) transparent;
 }
 
 ::-webkit-scrollbar {
@@ -310,7 +382,7 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0,245,212,0.25);
+  background: rgba(0, 245, 212, 0.25);
   border-radius: 999px;
 }
 
@@ -320,8 +392,13 @@ html {
 
 /* Float animation for tech chips */
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-5px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
 }
 
 @media (max-width: 639px) {
@@ -334,7 +411,6 @@ html {
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;
-    scroll-padding-top: 6rem;
   }
 }
 

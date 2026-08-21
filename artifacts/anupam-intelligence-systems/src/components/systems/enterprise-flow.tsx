@@ -1,5 +1,10 @@
 import { motion } from "framer-motion";
-import { flowEdges, flowNodes, getFlowNode, mobileFlowStages } from "./enterprise-flow-model";
+import {
+  flowEdges,
+  flowNodes,
+  getFlowNode,
+  mobileFlowStages,
+} from "./enterprise-flow-model";
 
 const NODE_W = 172;
 const NODE_H = 52;
@@ -11,45 +16,49 @@ export default function EnterpriseFlow() {
     <div className="glass mt-12 overflow-hidden rounded-[1.5rem] md:mt-20 md:rounded-[2rem]">
       <div className="flex flex-col items-start justify-between gap-4 border-b border-white/10 px-5 py-5 sm:px-8 sm:py-6 md:flex-row md:items-center">
         <div className="min-w-0">
-          <p className="text-[11px] uppercase text-primary sm:text-xs">REFERENCE ARCHITECTURE</p>
+          <p className="text-xs uppercase text-primary sm:text-xs">
+            REFERENCE ARCHITECTURE
+          </p>
           <h3 className="mt-2 max-w-xl font-display text-xl font-bold leading-tight text-white sm:mt-3 sm:text-2xl">
             Multi-Agent Operational Intelligence
           </h3>
         </div>
         <div className="flex items-center gap-2.5">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute animate-ping inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-          </span>
-          <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-[10px] font-semibold text-primary sm:px-4 sm:text-xs">
+          <span
+            className="h-2 w-2 rounded-full bg-primary"
+            aria-hidden="true"
+          />
+          <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary sm:px-4 sm:text-xs">
             LANGGRAPH ORCHESTRATION MAP
           </span>
         </div>
       </div>
 
-      <ol className="px-3 py-5 sm:px-6 sm:py-7 lg:hidden" aria-label="Multi-agent operational workflow">
+      <ol
+        className="px-3 py-5 sm:px-6 sm:py-7 lg:hidden"
+        aria-label="Multi-agent operational workflow"
+      >
         {mobileFlowStages.map((stage, stageIndex) => (
-          <motion.li
-            key={stage.id}
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.35, delay: stageIndex * 0.06 }}
-            data-testid={`mobile-flow-stage-${stage.id}`}
-          >
+          <li key={stage.id} data-testid={`mobile-flow-stage-${stage.id}`}>
             <div className="mb-2 flex items-center justify-between gap-3 px-1">
               <div className="flex items-center gap-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full border border-primary/30 bg-primary/10 font-mono text-[9px] font-bold text-primary">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full border border-primary/30 bg-primary/10 font-mono text-xs font-bold text-primary">
                   {stageIndex + 1}
                 </span>
-                <span className="text-[10px] font-semibold uppercase text-white/55">{stage.label}</span>
+                <span className="text-xs font-semibold uppercase text-white/55">
+                  {stage.label}
+                </span>
               </div>
-              <span className="text-[9px] text-white/32">{stage.description}</span>
+              <span className="text-xs text-white/32">{stage.description}</span>
             </div>
 
             <div
               className={`grid gap-1.5 ${
-                stage.nodeIds.length === 3 ? "grid-cols-3" : stage.nodeIds.length === 2 ? "grid-cols-2" : "grid-cols-1"
+                stage.nodeIds.length === 3
+                  ? "grid-cols-3"
+                  : stage.nodeIds.length === 2
+                    ? "grid-cols-2"
+                    : "grid-cols-1"
               }`}
             >
               {stage.nodeIds.map((nodeId) => {
@@ -57,7 +66,7 @@ export default function EnterpriseFlow() {
                 return (
                   <div
                     key={node.id}
-                    className={`flex min-h-[66px] items-center justify-center border px-2 py-3 text-center text-[11px] font-medium leading-snug sm:min-h-[72px] sm:text-xs ${
+                    className={`flex min-h-[66px] items-center justify-center border px-2 py-3 text-center text-xs font-medium leading-snug sm:min-h-[72px] sm:text-xs ${
                       node.highlight
                         ? "border-primary/40 bg-primary/10 text-primary shadow-[0_0_24px_rgba(45,212,191,0.08)]"
                         : "border-white/10 bg-white/[0.04] text-white/72"
@@ -71,13 +80,16 @@ export default function EnterpriseFlow() {
             </div>
 
             {stageIndex < mobileFlowStages.length - 1 && (
-              <div className="flex h-8 items-center justify-center" aria-hidden="true">
+              <div
+                className="flex h-8 items-center justify-center"
+                aria-hidden="true"
+              >
                 <div className="relative h-full w-px bg-primary/35">
                   <span className="absolute -bottom-0.5 -left-[3px] h-2 w-2 rotate-45 border-b border-r border-primary/55" />
                 </div>
               </div>
             )}
-          </motion.li>
+          </li>
         ))}
       </ol>
 
@@ -89,7 +101,14 @@ export default function EnterpriseFlow() {
             aria-hidden="true"
           >
             <defs>
-              <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <marker
+                id="arrow"
+                markerWidth="8"
+                markerHeight="8"
+                refX="6"
+                refY="3"
+                orient="auto"
+              >
                 <path d="M0,0 L0,6 L8,3 z" fill="rgba(0,245,212,0.5)" />
               </marker>
               <filter id="glow">
@@ -101,14 +120,16 @@ export default function EnterpriseFlow() {
               </filter>
             </defs>
 
-            {flowEdges.map((edge, i) => {
+            {flowEdges.map((edge) => {
               const src = getFlowNode(edge.from);
               const dst = getFlowNode(edge.to);
-              const x1 = cx(src), y1 = cy(src) + NODE_H / 2 - 4;
-              const x2 = cx(dst), y2 = cy(dst) - NODE_H / 2 + 4;
+              const x1 = cx(src),
+                y1 = cy(src) + NODE_H / 2 - 4;
+              const x2 = cx(dst),
+                y2 = cy(dst) - NODE_H / 2 + 4;
               const mid = (y1 + y2) / 2;
               return (
-                <motion.path
+                <path
                   key={edge.from + edge.to}
                   d={`M${x1},${y1} C${x1},${mid} ${x2},${mid} ${x2},${y2}`}
                   fill="none"
@@ -117,22 +138,15 @@ export default function EnterpriseFlow() {
                   strokeDasharray="6 4"
                   markerEnd="url(#arrow)"
                   filter="url(#glow)"
-                  initial={{ pathLength: 0, opacity: 0 }}
-                  whileInView={{ pathLength: 1, opacity: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 1.2, delay: i * 0.12 }}
                 />
               );
             })}
           </svg>
 
-          {flowNodes.map((node, i) => (
+          {flowNodes.map((node) => (
             <motion.div
               key={node.id}
-              initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.08 }}
+              initial={false}
               whileHover={{ scale: 1.04, y: -2 }}
               className="absolute flex items-center justify-center text-center text-xs font-medium cursor-default transition-all duration-200"
               style={{

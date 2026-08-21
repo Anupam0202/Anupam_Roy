@@ -1,66 +1,57 @@
 import { useEffect } from "react";
-import { getHashTargetId, HASH_SCROLL_DELAYS } from "@/lib/stable-hash-navigation";
-
-const HASH_WATCH_DURATION_MS = 9_000;
-const HASH_WATCH_INTERVAL_MS = 300;
-
+import { getHashTargetId } from "@/lib/stable-hash-navigation";
+const TARGET_WAIT_MS = 3_000;
 export function useStableHashNavigation(enabled = true) {
   useEffect(() => {
     if (!enabled) return;
-
-    const timers = new Set<number>();
-    const intervals = new Set<number>();
-
-    const scheduleScroll = (hash: string) => {
-      const targetId = getHashTargetId(hash);
-      if (!targetId) return;
-      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-      const alignTarget = (index: number) => {
-        const target = document.getElementById(targetId);
+    let observer: MutationObserver | null = null;
+    let timeout: number | null = null;
+    const stop = () => {
+      observer?.disconnect();
+      observer = null;
+      if (timeout !== null) clearTimeout(timeout);
+      timeout = null;
+    };
+    const navigate = (hash: string) => {
+      stop();
+      const id = getHashTargetId(hash);
+      if (!id) return;
+      const align = () => {
+        const target = document.getElementById(id);
         if (!target) return false;
         target.scrollIntoView({
-          behavior: index === 0 && !reducedMotion ? "smooth" : "auto",
+          behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+            ? "auto"
+            : "smooth",
           block: "start",
         });
+        stop();
         return true;
       };
-
-      HASH_SCROLL_DELAYS.forEach((delay, index) => {
-        const timer = window.setTimeout(() => {
-          timers.delete(timer);
-          alignTarget(index);
-        }, delay);
-        timers.add(timer);
-      });
-
-      const startedAt = Date.now();
-      const interval = window.setInterval(() => {
-        const expired = Date.now() - startedAt > HASH_WATCH_DURATION_MS;
-        const aligned = alignTarget(1);
-        if (aligned || expired) {
-          window.clearInterval(interval);
-          intervals.delete(interval);
-        }
-      }, HASH_WATCH_INTERVAL_MS);
-      intervals.add(interval);
+      if (align()) return;
+      observer = new MutationObserver(() => align());
+      observer.observe(document.body, { childList: true, subtree: true });
+      timeout = window.setTimeout(stop, TARGET_WAIT_MS);
     };
-
-    const onClick = (event: MouseEvent) => {
-      const anchor = (event.target as Element | null)?.closest<HTMLAnchorElement>('a[href^="#"]');
-      if (anchor) scheduleScroll(anchor.hash);
+    const click = (event: MouseEvent) => {
+      const a = (event.target as Element | null)?.closest<HTMLAnchorElement>(
+        'a[href^="#"]',
+      );
+      if (!a?.hash) return;
+      event.preventDefault();
+      history.pushState(null, "", a.hash);
+      navigate(a.hash);
     };
-    const onHashChange = () => scheduleScroll(window.location.hash);
-
-    document.addEventListener("click", onClick);
-    window.addEventListener("hashchange", onHashChange);
-    if (window.location.hash) scheduleScroll(window.location.hash);
-
+    const location = () => navigate(window.location.hash);
+    document.addEventListener("click", click);
+    addEventListener("hashchange", location);
+    addEventListener("popstate", location);
+    if (window.location.hash) navigate(window.location.hash);
     return () => {
-      document.removeEventListener("click", onClick);
-      window.removeEventListener("hashchange", onHashChange);
-      timers.forEach((timer) => window.clearTimeout(timer));
-      intervals.forEach((interval) => window.clearInterval(interval));
+      document.removeEventListener("click", click);
+      removeEventListener("hashchange", location);
+      removeEventListener("popstate", location);
+      stop();
     };
   }, [enabled]);
 }

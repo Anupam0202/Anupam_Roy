@@ -5,7 +5,8 @@ export const experience: ExperienceRole[] = [
     company: "Accenture",
     role: "AI/ML Analyst",
     period: "Dec 2023 - Present",
-    positioning: "Production GenAI systems for enterprise operations, incidents, releases, testing, and support automation without exposing client-specific context.",
+    positioning:
+      "Production GenAI systems for enterprise operations, incidents, releases, testing, and support automation without exposing client-specific context.",
     project: "Enterprise Operational AI Platform",
     type: "Production-grade enterprise multi-agent GenAI platform",
     impact: [
@@ -59,8 +60,16 @@ export const experience: ExperienceRole[] = [
     company: "Accenture",
     role: "Associate Software Engineer",
     period: "Aug 2022 - Nov 2023",
-    positioning: "Software-engineering foundation across Java microservices, serverless automation, CI/CD, quality, and Agile delivery.",
-    architectureBlocks: ["Java Microservices", "AWS Lambda", "CI/CD", "JUnit Testing", "Code Quality", "Agile DevOps"],
+    positioning:
+      "Software-engineering foundation across Java microservices, serverless automation, CI/CD, quality, and Agile delivery.",
+    architectureBlocks: [
+      "Java Microservices",
+      "AWS Lambda",
+      "CI/CD",
+      "JUnit Testing",
+      "Code Quality",
+      "Agile DevOps",
+    ],
     built: [
       "Built and deployed Spring Boot and Core Java microservices for scalable enterprise workflows.",
       "Designed AWS Lambda serverless components for event-driven execution.",
@@ -69,6 +78,16 @@ export const experience: ExperienceRole[] = [
       "Enforced SonarQube and SourceClear standards for maintainability and security.",
       "Delivered incremental features in Agile Scrum while contributing automation scripts for build, test, and deployment processes.",
     ],
-    stack: ["Spring Boot", "Core Java", "AWS Lambda", "CodeBuild", "CI/CD", "SonarQube", "SourceClear", "JUnit", "Agile Scrum"],
+    stack: [
+      "Spring Boot",
+      "Core Java",
+      "AWS Lambda",
+      "CodeBuild",
+      "CI/CD",
+      "SonarQube",
+      "SourceClear",
+      "JUnit",
+      "Agile Scrum",
+    ],
   },
 ];

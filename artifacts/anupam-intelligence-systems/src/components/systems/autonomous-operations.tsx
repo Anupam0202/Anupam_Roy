@@ -8,7 +8,10 @@ import SystemMetadata from "./system-metadata";
 
 export default function AutonomousOperations() {
   return (
-    <SectionWrapper className="overflow-hidden border-t border-white/5" id="systems">
+    <SectionWrapper
+      className="overflow-hidden border-t border-white/5"
+      id="systems"
+    >
       <FadeContainer>
         <SectionHeading
           eyebrow="SYSTEMS ARCHITECTURE"

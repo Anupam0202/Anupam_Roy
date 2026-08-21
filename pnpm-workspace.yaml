@@ -27,10 +27,17 @@ onlyBuiltDependencies:
   - msw
   - unrs-resolver
 
+# These packages ship prebuilt runtime artifacts; their install scripts are not
+# required by this application and remain explicitly blocked by policy.
+ignoredBuiltDependencies:
+  - '@google/genai'
+  - protobufjs
+
 overrides:
   '@esbuild-kit/esm-loader': npm:tsx@^4.21.0
+  body-parser: 2.3.0
   path-to-regexp: 8.4.2
-  protobufjs: 7.6.3
+  protobufjs: 7.6.5
   qs: 6.15.2
   ws: 8.21.0
   '@expo/ngrok-bin>@expo/ngrok-bin-darwin-arm64': '-'

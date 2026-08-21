@@ -30,7 +30,11 @@ export interface ExperienceRole {
 export interface Project {
   name: string;
   rank: "flagship" | "featured" | "lab" | "archive";
-  tab: "Flagship Systems" | "RAG / GenAI" | "ML / Computer Vision" | "Frontend Experiments";
+  tab:
+    | "Flagship Systems"
+    | "RAG / GenAI"
+    | "ML / Computer Vision"
+    | "Frontend Experiments";
   oneLiner: string;
   problem: string;
   architecture: string[];

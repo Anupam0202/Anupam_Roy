@@ -5,7 +5,9 @@ describe("consultant SSE parser", () => {
   it("retains split events and emits content exactly once", () => {
     const parser = createConsultantStreamParser();
     expect(parser.push('data: {"content":"Hel')).toEqual([]);
-    expect(parser.push('lo","mode":"gemini"}\n\ndata: {"done":true}\n\n')).toEqual([
+    expect(
+      parser.push('lo","mode":"gemini"}\n\ndata: {"done":true}\n\n'),
+    ).toEqual([
       { type: "content", content: "Hello", mode: "gemini" },
       { type: "done", mode: undefined },
     ]);
@@ -13,7 +15,11 @@ describe("consultant SSE parser", () => {
 
   it("reports malformed and error events without throwing", () => {
     const parser = createConsultantStreamParser();
-    expect(parser.push('data: not-json\n\ndata: {"error":"quota","mode":"offline"}\n\n')).toEqual([
+    expect(
+      parser.push(
+        'data: not-json\n\ndata: {"error":"quota","mode":"offline"}\n\n',
+      ),
+    ).toEqual([
       { type: "malformed" },
       { type: "error", error: "quota", mode: "offline" },
     ]);
@@ -22,6 +28,8 @@ describe("consultant SSE parser", () => {
   it("flushes a final event without a trailing separator", () => {
     const parser = createConsultantStreamParser();
     parser.push('data: {"content":"final"}');
-    expect(parser.finish()).toEqual([{ type: "content", content: "final", mode: undefined }]);
+    expect(parser.finish()).toEqual([
+      { type: "content", content: "final", mode: undefined },
+    ]);
   });
 });

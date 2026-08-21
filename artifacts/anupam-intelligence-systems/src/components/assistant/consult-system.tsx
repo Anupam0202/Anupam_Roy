@@ -1,10 +1,21 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ComponentPropsWithoutRef,
+} from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Bot, ExternalLink, Send, Square, Trash2, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { suggestedPrompts } from "@/data/assistant";
-import { type ConsultantStatus, usePortfolioConsultant } from "@/hooks/use-portfolio-consultant";
+import {
+  type ConsultantStatus,
+  usePortfolioConsultant,
+} from "@/hooks/use-portfolio-consultant";
+import { acquirePortfolioShellInert } from "@/lib/modal-a11y";
+import { isSafePortfolioHref } from "@/lib/safe-portfolio-link";
 
 function statusLabel(status: ConsultantStatus) {
   const labels: Record<ConsultantStatus, string> = {
@@ -18,12 +29,22 @@ function statusLabel(status: ConsultantStatus) {
   return labels[status];
 }
 
-function PromptRail({ disabled, onSelect }: { disabled: boolean; onSelect: (prompt: string) => void }) {
+function PromptRail({
+  disabled,
+  onSelect,
+}: {
+  disabled: boolean;
+  onSelect: (prompt: string) => void;
+}) {
   return (
     <div className="border border-white/8 bg-white/[0.025] p-3 [@media(max-height:520px)]:hidden">
       <div className="mb-2 flex items-center justify-between gap-3">
-        <p className="text-[10px] font-semibold uppercase text-white/35">Suggested prompts</p>
-        <p className="hidden text-[10px] text-white/30 sm:block">Choose one to start</p>
+        <p className="text-xs font-semibold uppercase text-white/35">
+          Suggested prompts
+        </p>
+        <p className="hidden text-xs text-white/30 sm:block">
+          Choose one to start
+        </p>
       </div>
       <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {suggestedPrompts.map((prompt) => (
@@ -31,7 +52,7 @@ function PromptRail({ disabled, onSelect }: { disabled: boolean; onSelect: (prom
             key={prompt}
             onClick={() => onSelect(prompt)}
             disabled={disabled}
-            className="max-w-[72vw] shrink-0 rounded-full border border-white/10 bg-white/[0.035] px-3 py-2 text-left text-[11px] leading-snug text-white/65 transition hover:border-primary/35 hover:text-white disabled:opacity-40 sm:max-w-[260px]"
+            className="max-w-[72vw] shrink-0 rounded-full border border-white/10 bg-white/[0.035] px-3 py-2 text-left text-xs leading-snug text-white/65 transition hover:border-primary/35 hover:text-white disabled:opacity-40 sm:max-w-[260px]"
             type="button"
           >
             {prompt}
@@ -45,8 +66,15 @@ function PromptRail({ disabled, onSelect }: { disabled: boolean; onSelect: (prom
 export default function ConsultSystem() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
-  const { messages, status, responding, hasUserMessage, send, cancelResponse, clearConversation } =
-    usePortfolioConsultant(open);
+  const {
+    messages,
+    status,
+    responding,
+    hasUserMessage,
+    send,
+    cancelResponse,
+    clearConversation,
+  } = usePortfolioConsultant(open);
   const dialogRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -58,9 +86,33 @@ export default function ConsultSystem() {
     window.setTimeout(() => triggerRef.current?.focus(), 0);
   }, [cancelResponse, responding]);
 
+  const renderMarkdownLink = useCallback(
+    ({ href, children }: ComponentPropsWithoutRef<"a">) => {
+      if (!isSafePortfolioHref(href)) return <span>{children}</span>;
+      const isSectionReference = href.startsWith("#");
+      return (
+        <a
+          href={href}
+          onClick={isSectionReference ? closeDialog : undefined}
+          target={isSectionReference ? undefined : "_blank"}
+          rel={isSectionReference ? undefined : "noopener noreferrer"}
+          className="inline-flex items-center gap-1 font-semibold text-primary underline decoration-primary/35 underline-offset-2 transition hover:decoration-primary"
+        >
+          {children}
+          {!isSectionReference && (
+            <ExternalLink className="h-3 w-3 shrink-0" aria-hidden="true" />
+          )}
+        </a>
+      );
+    },
+    [closeDialog],
+  );
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
-      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
     });
   }, [messages]);
 
@@ -68,6 +120,7 @@ export default function ConsultSystem() {
     if (!open) return;
 
     const previousOverflow = document.body.style.overflow;
+    const releasePageInert = acquirePortfolioShellInert();
     document.body.style.overflow = "hidden";
     inputRef.current?.focus();
 
@@ -99,6 +152,7 @@ export default function ConsultSystem() {
     return () => {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", onKeyDown);
+      releasePageInert();
     };
   }, [closeDialog, open]);
 
@@ -127,7 +181,7 @@ export default function ConsultSystem() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="fixed inset-x-2 bottom-2 top-2 z-[200] flex min-h-0 flex-col overflow-hidden border border-white/10 bg-[#07110f]/98 shadow-[0_0_80px_rgba(0,0,0,0.85)] backdrop-blur-2xl sm:bottom-8 sm:left-auto sm:right-8 sm:top-auto sm:h-[720px] sm:max-h-[calc(100dvh-4rem)] sm:w-[470px]"
+            className="consult-dialog fixed z-[200] flex min-h-0 flex-col overflow-hidden border border-white/10 bg-[#07110f]/98 shadow-[0_0_80px_rgba(0,0,0,0.85)] backdrop-blur-2xl sm:h-[720px] sm:max-h-[calc(100dvh-4rem)] sm:w-[470px]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="portfolio-concierge-title"
@@ -135,17 +189,25 @@ export default function ConsultSystem() {
           >
             <div className="flex shrink-0 items-start justify-between gap-3 border-b border-white/10 p-4 sm:p-5 [@media(max-height:520px)]:p-3">
               <div className="min-w-0">
-                <p className="text-[10px] font-bold uppercase text-primary sm:text-xs">Portfolio Concierge</p>
-                <h2 id="portfolio-concierge-title" className="mt-1 font-display text-base font-bold text-white sm:text-lg">
+                <p className="text-xs font-bold uppercase text-primary sm:text-xs">
+                  Portfolio Concierge
+                </p>
+                <h2
+                  id="portfolio-concierge-title"
+                  className="mt-1 font-display text-base font-bold text-white sm:text-lg"
+                >
                   Ask about Anupam's fit
                 </h2>
                 <p
                   id="portfolio-concierge-status"
-                  className="mt-1 truncate text-[11px] text-muted-foreground sm:mt-2 sm:text-xs"
+                  className="mt-1 truncate text-xs text-muted-foreground sm:mt-2 sm:text-xs"
                   role="status"
                   aria-live="polite"
                 >
                   {statusLabel(status)}
+                </p>
+                <p className="mt-1 text-xs font-medium text-white/38">
+                  Portfolio-grounded only · no invented claims
                 </p>
               </div>
               <div className="flex shrink-0 gap-1">
@@ -186,21 +248,31 @@ export default function ConsultSystem() {
             <div
               className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-3 sm:space-y-4 sm:p-4"
               data-consult-messages="true"
+              role="log"
               aria-live="polite"
+              aria-relevant="additions text"
+              aria-busy={responding}
             >
               {messages.map((message, index) => (
-                <div
+                <article
                   key={`${message.role}-${index}`}
                   data-message-mode={message.mode}
+                  aria-label={`${message.role === "assistant" ? "Consultant" : "Your"} message ${index + 1}`}
                   className={`max-w-[94%] overflow-hidden break-words px-3 py-2.5 text-[13px] leading-relaxed sm:max-w-[92%] sm:px-4 sm:py-3 sm:text-sm ${
-                    message.role === "user" ? "ml-auto bg-primary text-black" : "border border-white/5 bg-white/[0.05] text-muted-foreground"
+                    message.role === "user"
+                      ? "ml-auto bg-primary text-black"
+                      : "border border-white/5 bg-white/[0.05] text-muted-foreground"
                   }`}
                 >
                   {message.role === "assistant" ? (
                     <>
                       <div className="prose prose-sm prose-invert max-w-none">
-                        <ReactMarkdown>{message.content}</ReactMarkdown>
-                        {message.streaming && <span className="ml-1 inline-block h-3 w-0.5 animate-pulse bg-primary" />}
+                        <ReactMarkdown components={{ a: renderMarkdownLink }}>
+                          {message.content}
+                        </ReactMarkdown>
+                        {message.streaming && (
+                          <span className="ml-1 inline-block h-3 w-0.5 animate-pulse bg-primary" />
+                        )}
                       </div>
                       {!!message.references?.length && (
                         <div className="mt-3 flex flex-wrap gap-1.5 border-t border-white/8 pt-2">
@@ -209,7 +281,7 @@ export default function ConsultSystem() {
                               key={reference.href}
                               href={reference.href}
                               onClick={closeDialog}
-                              className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-primary/20 px-2.5 text-[10px] font-semibold text-primary/75 transition hover:border-primary/40 hover:text-primary"
+                              className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-primary/20 px-2.5 text-xs font-semibold text-primary/75 transition hover:border-primary/40 hover:text-primary"
                             >
                               {reference.label}
                               <ExternalLink className="h-3 w-3" />
@@ -221,13 +293,18 @@ export default function ConsultSystem() {
                   ) : (
                     message.content
                   )}
-                </div>
+                </article>
               ))}
-              {!hasUserMessage && !responding && <PromptRail disabled={responding} onSelect={submit} />}
+              {!hasUserMessage && !responding && (
+                <PromptRail disabled={responding} onSelect={submit} />
+              )}
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="shrink-0 border-t border-white/8 bg-[#07110f]/98 p-3 sm:p-4" data-consult-inputbar="true">
+            <div
+              className="shrink-0 border-t border-white/8 bg-[#07110f]/98 p-3 sm:p-4"
+              data-consult-inputbar="true"
+            >
               <div className="flex gap-2">
                 <input
                   ref={inputRef}
@@ -240,6 +317,7 @@ export default function ConsultSystem() {
                     }
                   }}
                   placeholder="Ask about experience, systems, or projects..."
+                  aria-label="Question for the portfolio consultant"
                   className="min-w-0 flex-1 border border-white/10 bg-white/[0.04] px-3 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-primary/45 sm:px-4"
                   disabled={responding}
                   maxLength={1500}
@@ -251,7 +329,11 @@ export default function ConsultSystem() {
                   aria-label={responding ? "Cancel response" : "Send message"}
                   type="button"
                 >
-                  {responding ? <Square className="h-3.5 w-3.5 fill-current" /> : <Send className="h-4 w-4" />}
+                  {responding ? (
+                    <Square className="h-3.5 w-3.5 fill-current" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             </div>
@@ -269,7 +351,7 @@ export default function ConsultSystem() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="fixed bottom-3 right-3 z-[100] inline-flex h-12 w-12 items-center justify-center gap-2 rounded-full border border-primary/30 bg-primary p-0 text-sm font-bold text-black shadow-[0_0_40px_rgba(45,212,191,0.3)] min-[480px]:h-auto min-[480px]:w-auto min-[480px]:min-h-12 min-[480px]:px-4 min-[480px]:py-3 sm:bottom-8 sm:right-8 sm:px-5"
+        className="consult-trigger fixed z-[100] inline-flex h-12 w-12 items-center justify-center gap-2 rounded-full border border-primary/30 bg-primary p-0 text-sm font-bold text-black shadow-[0_0_40px_rgba(45,212,191,0.3)] min-[480px]:h-auto min-[480px]:w-auto min-[480px]:min-h-12 min-[480px]:px-4 min-[480px]:py-3 sm:px-5"
         aria-label="Open AI portfolio consultant"
         type="button"
       >
