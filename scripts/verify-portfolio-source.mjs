@@ -273,7 +273,7 @@ assert.match(
 assert.match(finalLockfile, /body-parser@2\.3\.0/);
 assert.match(finalLockfile, /protobufjs@7\.6\.5/);
 const protobufjsResolution = finalLockfile.match(
-  /protobufjs@7\.6\.5:\n\s+resolution: \{integrity: ([^}]+)\}/,
+  /protobufjs@7\.6\.5:\s+resolution:\s*\{integrity:\s*([^}\s]+)\s*\}/,
 );
 assert.equal(
   protobufjsResolution?.[1],
