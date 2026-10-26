@@ -61,6 +61,10 @@ jobs:
   webkit:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    # The official image ships WebKit and its system libraries for this Playwright
+    # version, so no apt install runs (it stalled on slow package mirrors).
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -70,7 +74,6 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm run build
-      - run: pnpm --filter @workspace/proof-atlas exec playwright install --with-deps webkit
       - run: pnpm --filter @workspace/proof-atlas exec playwright test --project=webkit
         env:
           CI: "true"
