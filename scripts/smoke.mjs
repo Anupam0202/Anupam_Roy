@@ -119,6 +119,8 @@ if (status) {
   for (const f of STATUS_FIELDS) check(f in status, `/api/status: field ${f} missing`);
   check(Array.isArray(status.policyIssues) && status.policyIssues.length === 0, `/api/status: policy issues ${JSON.stringify(status.policyIssues)}`);
   if (expectRelease) check(String(status.release).startsWith(expectRelease.slice(0, 7)), `/api/status: release ${status.release}, expected ${expectRelease.slice(0, 7)}`);
+  console.log(`Contact form: ${status.contact?.configured ? "configured" : "not configured"}`);
+  if (!status.contact?.configured) warnings.push("The contact form is not configured: set RESEND_API_KEY and CONTACT_TO_EMAIL for Production");
 }
 
 /* Ask the Atlas: a soft check, reported but never failing the run */

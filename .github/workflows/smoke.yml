@@ -13,6 +13,10 @@ on:
       expect_release:
         description: Commit (7+ hex characters) that /api/status must report; empty to skip
         required: false
+      contact_test:
+        description: Also send one labelled test message through the contact form
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -43,6 +47,19 @@ jobs:
           else
             node scripts/smoke.mjs "$BASE_URL"
           fi
+
+  contact:
+    # Only when started by hand with contact_test ticked; it sends one real email.
+    if: github.event_name == 'workflow_dispatch' && inputs.contact_test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Send one test message through the contact form
+        run: node scripts/contact-check.mjs "$BASE_URL" --send
 
   lighthouse:
     needs: smoke
