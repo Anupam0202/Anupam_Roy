@@ -1,8 +1,8 @@
 # ADR 0001 — Proof Atlas 3.0 framework and hosting
 
-- Status: **Accepted 2026-10-25** — Option A (Astro static, this repository), hosted on Vercel (see `docs/proof-atlas-3/DECISIONS.md`, D1 and D2)
+- Status: **Accepted 2026-10-25** — Option A (Astro static, this repository), hosted on Vercel (see [`DECISIONS.md`](../DECISIONS.md), Platform)
 - Date: 2026-10-25
-- Context sources: `docs/proof-atlas-3/MASTER_PROMPT.md`, `docs/proof-atlas-3/SOURCE_AUDIT.md`
+- Context: the requirements for Proof Atlas 3.0 and an audit of the previous Vite single-page site
 
 ## Context
 
@@ -61,14 +61,14 @@ A new workspace package replaces the Vite frontend on a migration branch.
 ### C. New separate repository
 
 - Clean history, but loses this repository's tests, assets and Vercel project,
-  and splits the source of truth. The spec says not to discard working
-  infrastructure prematurely. Not recommended.
+  and splits the source of truth, discarding working infrastructure for no
+  gain. Not recommended.
 
 ## Hosting is a separate decision
 
 Astro's static output deploys equally to Vercel and Cloudflare. On both, static
-files are served from the CDN without invoking a function, so the spec's
-"asset-first, function only on `/api/*`" property holds either way.
+files are served from the CDN without invoking a function, so the
+"asset-first, function only on `/api/*`" requirement holds either way.
 
 | | Stay on Vercel | Move to Cloudflare Workers Static Assets |
 |---|---|---|

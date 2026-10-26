@@ -1,3 +1,0 @@
-# Reviewed false positive: a made-up token in the test that checks /api/status
-# never echoes configured secrets (artifacts/api-server/src/app.test.ts).
-a88f381f9309889ee1fcee31001cbcf83dff6712:artifacts/api-server/src/app.test.ts:generic-api-key:102

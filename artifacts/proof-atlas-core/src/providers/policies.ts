@@ -1,11 +1,11 @@
 /**
- * ProviderPolicy registry (MASTER_PROMPT.md "API PROVIDER POLICY").
+ * ProviderPolicy registry. The screening behind it is in docs/PROVIDER_REVIEW.md.
  *
  * `verifiedAt` records when these facts were last reviewed and by what method.
  * The 2026-10-25 entries come from the owner-supplied Proof Atlas 3.0
- * research; the implementation environment could not reach provider
- * documentation, so `verification` says so explicitly. Re-verify before
- * changing limits or enabling a disabled provider.
+ * research; provider documentation could not be fetched directly during that
+ * review, so `verification` says so explicitly. Re-verify before changing
+ * limits or enabling a disabled provider.
  */
 import type { EgressPolicy } from "../security/egress";
 

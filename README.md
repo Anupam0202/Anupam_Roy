@@ -1,5 +1,7 @@
 # Proof Atlas · Anupam Roy
 
+[![CI](https://github.com/Anupam0202/Anupam_Roy/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Anupam0202/Anupam_Roy/actions/workflows/ci.yml)
+
 The portfolio and proof workbench of Anupam Roy, AI/ML Analyst. Thesis: **difficult problems become understandable systems.** Every important statement on the site links to an evidence ledger that says how it was established and what it does not prove.
 
 Live site: [anupam-roy.vercel.app](https://anupam-roy.vercel.app/)
@@ -12,7 +14,20 @@ Live site: [anupam-roy.vercel.app](https://anupam-roy.vercel.app/)
 - **Experience, Credentials, About, Contact** — 74 credential records, each backed by its certificate PDF.
 - **Sources** — the evidence ledger and *Ask the Atlas*, an assistant that may only cite ledger entries retrieved for the question.
 
-Which outside APIs run, and why the other screened ones do not, is recorded in [`PROVIDER_REVIEW.md`](docs/proof-atlas-3/PROVIDER_REVIEW.md). Owner decisions and the source audit behind the content are in [`docs/proof-atlas-3/`](docs/proof-atlas-3/); the framework and hosting choice is [ADR 0001](docs/adr/0001-proof-atlas-3-framework-and-hosting.md).
+## Tech stack
+
+- **Site:** Astro 7.4.1 with React 19 islands and TypeScript; self-hosted fonts; no analytics and no cookies.
+- **API:** Express 5, bundled with esbuild and deployed as Vercel functions; pino logging.
+- **Services:** Gemini (Ask the Atlas), Resend (contact form), GitHub, Crossref, DataCite, npm and PyPI (Workbench).
+- **Quality:** Vitest unit and integration tests, Playwright end-to-end tests in Chromium and WebKit with axe accessibility checks, ESLint 10, per-page weight budgets.
+- **Automation:** GitHub Actions for CI (Node 22 and 24), a full-history secret scan, and a smoke check plus mobile Lighthouse after every production deploy.
+
+## Documentation
+
+- [`docs/DECISIONS.md`](docs/DECISIONS.md) — the design decisions behind the site and why each was made.
+- [`docs/adr/0001-proof-atlas-3-framework-and-hosting.md`](docs/adr/0001-proof-atlas-3-framework-and-hosting.md) — the framework and hosting choice.
+- [`docs/PROVIDER_REVIEW.md`](docs/PROVIDER_REVIEW.md) — which outside APIs run and why the other screened services do not, with the screening data in [`docs/API_SCREENING_105.csv`](docs/API_SCREENING_105.csv).
+- [`ASSET_LICENSES.md`](ASSET_LICENSES.md) — licences of bundled fonts and third-party assets.
 
 ## Repository layout
 
@@ -20,7 +35,7 @@ Which outside APIs run, and why the other screened ones do not, is recorded in [
 .
 |-- .github/workflows/
 |   |-- ci.yml                   # lint, tests and build on Node 22 and 24, E2E (Chromium, WebKit), secret scan
-|   `-- smoke.yml                # read-only checks and mobile Lighthouse after each production deploy
+|   `-- smoke.yml                # smoke check and mobile Lighthouse after each production deploy; manual contact form test
 |-- api/index.js                 # Vercel function entry: exports the bundled API
 |-- artifacts/
 |   |-- proof-atlas/             # Astro 7 static site with React islands
@@ -34,8 +49,9 @@ Which outside APIs run, and why the other screened ones do not, is recorded in [
 |   |-- verify-portfolio-source.mjs
 |   |-- verify-dist.mjs          # post-build checks and per-page weight budgets
 |   |-- page-budgets.json
-|   `-- smoke.mjs                # read-only smoke check of a running deployment
-|-- docs/
+|   |-- smoke.mjs                # read-only smoke check of a running deployment
+|   `-- contact-check.mjs        # contact form check; --send delivers one labelled test message
+|-- docs/                        # design decisions, ADR, provider review
 |-- eslint.config.js
 |-- lighthouserc.json
 `-- vercel.json
@@ -125,7 +141,10 @@ pnpm run test:e2e       # Playwright (Chromium) against the Vercel-parity server
 pnpm run test:a11y      # the axe accessibility specs only
 pnpm run smoke <url> [--expect-release <sha7>]      # read-only checks of a running deployment
 pnpm run verify:production   # the same against https://anupam-roy.vercel.app
+node scripts/contact-check.mjs <url> [--send]       # is contact delivery configured? --send sends one test message
 ```
+
+To test the live contact form end to end, open **Actions → Smoke → Run workflow** and tick **contact_test**: one message labelled "Contact form check" is sent through the real form to the inbox in `CONTACT_TO_EMAIL`.
 
 WebKit runs in CI. Locally, run `pnpm --filter @workspace/proof-atlas exec playwright install webkit` once and set `E2E_WEBKIT=1` to include it. To regenerate the social images or the PNG icons: `pnpm --filter @workspace/proof-atlas run og` or `run icons`.
 

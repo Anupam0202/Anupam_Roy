@@ -25,7 +25,7 @@ Every outbound call, including the contact form's call to Resend, goes through t
 | Resend (contact form) | Official API reference: `POST https://api.resend.com/emails` with a Bearer key; fields `from`, `to[]`, `subject`, `text`, `reply_to`. Rate limit 10 requests per second per team, the same on every plan; the free plan sends 100 emails a day (a UTC day) and 3,000 a month; exceeding a limit returns 429. The policy budget is 100 a day, one call at a time. | [Usage limits](https://resend.com/docs/api-reference/rate-limit), [Account quotas](https://resend.com/docs/knowledge-base/account-quotas-and-limits), [Send email](https://resend.com/docs/api-reference/emails/send-email) — excerpts via search, re-checked 2026-10-26 |
 | Gemini model (Ask the Atlas) | Default model `gemini-3.8-flash`, called with `thinkingConfig.thinkingLevel: "low"` and no `temperature` (Gemini 3 models take a thinking level; 2.5 Flash models instead take `thinkingBudget: 0`). `GEMINI_MODEL` overrides the default; a model Google reports as not found is replaced by the default after one retry. | [What's new in Gemini 3.8](https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.8), [Gemini thinking](https://ai.google.dev/gemini-api/docs/thinking) — excerpts via search, 2026-10-25 |
 
-Verification is recorded as `official-docs-excerpt`: the documentation hosts are not reachable from the build sandbox, so the terms were read through search excerpts of the official pages, and the API behaviour was confirmed by calling it.
+Verification is recorded as `official-docs-excerpt`: the documentation hosts were not reachable from the review environment, so the terms were read through search excerpts of the official pages, and the API behaviour was confirmed by calling it.
 
 ## Runtime policy as coded (2026-10-26)
 
@@ -132,7 +132,7 @@ Seven of the ten policies rest on the owner-supplied research; three were checke
 | 75 | 511 SF Bay | Mobility | Restricted / reject default | Not used — San Francisco local-only feed. |
 | 76 | GTFS agency feeds | Mobility | Restricted / reject default | Not used — Per-feed licensing and geography constraints. |
 | 77 | Brevo | Comms/media | Conditional candidate | Not used — Adds signup/consent, spam or licensing overhead; no contact backend by default. |
-| 78 | Resend | Comms/media | Conditional candidate | Kept for the contact form only (owner decision D7); active only when `RESEND_API_KEY` and `CONTACT_TO_EMAIL` are set. Calls go through the guarded provider client (policy `resend`, 100 a day). |
+| 78 | Resend | Comms/media | Conditional candidate | Kept for the contact form only (see [`DECISIONS.md`](DECISIONS.md)); active only when `RESEND_API_KEY` and `CONTACT_TO_EMAIL` are set. Calls go through the guarded provider client (policy `resend`, 100 a day). |
 | 79 | SendGrid | Comms/media | Conditional candidate | Not used — Adds signup/consent, spam or licensing overhead; no contact backend by default. |
 | 80 | Pushover | Comms/media | Conditional candidate | Not used — Adds signup/consent, spam or licensing overhead; no contact backend by default. |
 | 81 | ntfy.sh | Comms/media | Conditional candidate | Not used — Adds signup/consent, spam or licensing overhead; no contact backend by default. |

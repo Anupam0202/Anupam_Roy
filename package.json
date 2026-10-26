@@ -2,6 +2,16 @@
   "name": "proof-atlas",
   "version": "1.0.0",
   "private": true,
+  "description": "Proof Atlas: the portfolio and proof workbench of Anupam Roy, where every important claim links to its evidence.",
+  "author": "Anupam Roy <anupam020202@gmail.com>",
+  "homepage": "https://anupam-roy.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Anupam0202/Anupam_Roy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Anupam0202/Anupam_Roy/issues"
+  },
   "type": "module",
   "license": "UNLICENSED",
   "packageManager": "pnpm@10.34.5",
