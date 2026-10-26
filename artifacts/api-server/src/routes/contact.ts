@@ -50,6 +50,12 @@ export function validateContact(body: ContactBody): Parsed | { error: string } {
 
 type SendError = { status: number; name: string; message: string };
 
+/** The part of an address after "@", lower-cased; enough to tell inboxes apart in logs without exposing them. */
+export function addressDomain(address: string): string {
+  const email = /<([^>]+)>/.exec(address)?.[1] ?? address;
+  return email.slice(email.lastIndexOf("@") + 1).trim().toLowerCase() || "unknown";
+}
+
 const isSenderDomainError = (e: SendError) => e.status === 403 && /domain is not verified|verify your domain/i.test(e.message);
 const isTestingOnlyError = (e: SendError) => e.status === 403 && /only send testing emails/i.test(e.message);
 
@@ -118,10 +124,28 @@ export function createContactRouter(deps: Deps, providers: ProviderClient): IRou
       // At most two attempts. On a sender-domain or testing-only refusal, the second
       // goes from the fallback sender, to the sandbox recipient when one is configured
       // (Resend's testing sender only delivers to the account owner).
-      let result = await send(from, to);
+      // Each attempt is logged with domains and variable names only, never full addresses,
+      // so the runtime logs show which path a message took and where it went.
+      const attempt = async (path: "primary" | "fallback-sender" | "sandbox", sender: string, recipientVar: "CONTACT_TO_EMAIL" | "RESEND_SANDBOX_TO_EMAIL") => {
+        const recipient = recipientVar === "RESEND_SANDBOX_TO_EMAIL" && sandboxTo ? sandboxTo : to;
+        const outcome = await send(sender, recipient);
+        req.log.info(
+          {
+            provider: "resend",
+            path,
+            senderDomain: addressDomain(sender),
+            recipientVar,
+            recipientDomain: addressDomain(recipient),
+            ...("status" in outcome ? { status: outcome.status, error: outcome.name } : { status: 200, id: outcome.id }),
+          },
+          "Contact delivery attempt",
+        );
+        return outcome;
+      };
+      let result = await attempt("primary", from, "CONTACT_TO_EMAIL");
       if ("status" in result) {
-        if (isSenderDomainError(result) && fallbackFrom !== from) result = await send(fallbackFrom, sandboxTo || to);
-        else if (isTestingOnlyError(result) && sandboxTo && sandboxTo !== to) result = await send(fallbackFrom, sandboxTo);
+        if (isSenderDomainError(result) && fallbackFrom !== from) result = await attempt("fallback-sender", fallbackFrom, sandboxTo ? "RESEND_SANDBOX_TO_EMAIL" : "CONTACT_TO_EMAIL");
+        else if (isTestingOnlyError(result) && sandboxTo && sandboxTo !== to) result = await attempt("sandbox", fallbackFrom, "RESEND_SANDBOX_TO_EMAIL");
       }
       if ("status" in result) {
         req.log.error({ provider: "resend", status: result.status, name: result.name }, "Contact delivery failed");

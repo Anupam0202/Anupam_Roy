@@ -8,8 +8,10 @@
  *
  * Checks every sitemap route, every vercel.json redirect, the 404 page,
  * robots.txt and sitemap.xml, the security and cache headers, and
- * /api/status. Asks Ask the Atlas one question as a soft check. It never
- * sends a contact message.
+ * /api/status. Then makes one real request to each API feature (repository
+ * analysis and dependencies, npm and PyPI lookups, citation resolve and
+ * search, Ask the Atlas); a provider that is down or rate-limited is a
+ * warning, any other error fails the run. It never sends a contact message.
  */
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -123,19 +125,68 @@ if (status) {
   if (!status.contact?.configured) warnings.push("The contact form is not configured: set RESEND_API_KEY and CONTACT_TO_EMAIL for Production");
 }
 
-/* Ask the Atlas: a soft check, reported but never failing the run */
+/*
+ * Feature checks: one real request to every API-backed feature, as a visitor would make it.
+ * A provider that is down, rate-limited or over its daily budget (429, 502, 503) is a warning;
+ * any other failure is a fault in this site and fails the run.
+ */
+const post = (p, payload) => get(p, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(payload) });
+const PROVIDER_TROUBLE = new Set([429, 502, 503]);
+const features = [];
+async function feature(name, path, payload, inspect = () => "") {
+  try {
+    const res = await post(path, payload);
+    const body = await res.json().catch(() => null);
+    if (res.status === 200 && body && !body.error) {
+      const note = inspect(body);
+      features.push(`${name}: ok${note ? ` (${note})` : ""}`);
+    } else if (PROVIDER_TROUBLE.has(res.status)) {
+      features.push(`${name}: provider unavailable (HTTP ${res.status})`);
+      warnings.push(`${name}: HTTP ${res.status} ${body?.error ?? ""}`.trim());
+    } else {
+      features.push(`${name}: FAILED (HTTP ${res.status})`);
+      check(false, `${name}: HTTP ${res.status} ${body?.error ?? "no JSON body"}`);
+    }
+  } catch (error) {
+    features.push(`${name}: not reachable`);
+    warnings.push(`${name} could not be checked: ${error.message}`);
+  }
+}
+const blockedSections = (coverage = {}) => Object.entries(coverage).filter(([, state]) => state === "provider_blocked").map(([section]) => section);
+
+await feature("Repository Evidence Graph", "/api/repository/analyze", { owner: "Anupam0202", repo: "Anupam_Roy" }, (b) => {
+  const blocked = blockedSections(b.coverage);
+  if (blocked.length) warnings.push(`GitHub did not return ${blocked.join(", ")} (rate limit?); a GITHUB_TOKEN raises the limit`);
+  return blocked.length ? `blocked: ${blocked.join(", ")}` : "no section blocked";
+});
+await feature("Declared dependencies", "/api/repository/dependencies", { owner: "Anupam0202", repo: "Anupam_Roy" }, (b) => {
+  const blocked = (b.manifests ?? []).filter((m) => m.state === "provider_blocked").map((m) => m.path);
+  if (blocked.length) warnings.push(`GitHub did not return ${blocked.join(", ")} (rate limit?)`);
+  return `${(b.manifests ?? []).filter((m) => m.state === "observed").length} manifests read${blocked.length ? `, blocked: ${blocked.join(", ")}` : ""}`;
+});
+await feature("npm package lookup", "/api/packages/lookup", { ecosystem: "npm", name: "astro" }, (b) => (b.package?.latestVersion ? `astro ${b.package.latestVersion}` : ""));
+await feature("PyPI package lookup", "/api/packages/lookup", { ecosystem: "pypi", name: "requests" }, (b) => (b.package?.latestVersion ? `requests ${b.package.latestVersion}` : ""));
+await feature("Citation resolve", "/api/citations/resolve", { doi: "10.1038/nature14539", compare: true }, (b) => (b.record?.title ? "Crossref record" + (b.partial ? ", DataCite unavailable" : "") : ""));
+await feature("Citation search", "/api/citations/search", { query: "retrieval augmented generation" }, (b) => `${Array.isArray(b.results) ? b.results.length : 0} results`);
+
+/* Ask the Atlas: AI when configured, otherwise ledger evidence. Both are valid answers; AI off is a warning. */
 try {
-  const res = await get("/api/ai/ask", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: "What is NexusRAG?" }) });
+  const res = await post("/api/ai/ask", { question: "What is NexusRAG?" });
   const body = await res.json();
-  console.log(`Ask the Atlas: HTTP ${res.status}, mode ${body.mode}${body.reason ? `, reason ${body.reason}` : ""}`);
-  if (body.mode === "deterministic") warnings.push(`Ask the Atlas answered without AI (reason: ${body.reason ?? "unknown"})`);
+  const cited = body.result?.citationIds?.length ?? 0;
+  features.push(`Ask the Atlas: ${body.mode}${body.reason ? ` (${body.reason})` : ""}${body.result ? `, ${body.result.state}, ${cited} citation${cited === 1 ? "" : "s"}` : ""}`);
+  check(res.status === 200, `Ask the Atlas: HTTP ${res.status}`);
+  if (body.mode === "deterministic" && status?.assistant?.enabled) warnings.push(`Ask the Atlas answered without AI (reason: ${body.reason ?? "unknown"})`);
   // Status is per instance, so this is best effort: it names the model that instance used.
   const assistant = (await (await get("/api/status", { headers: { Accept: "application/json" } })).json()).assistant ?? {};
   console.log(`Ask the Atlas model: ${assistant.model ?? "unknown"}`);
   if (assistant.fallbackFrom) warnings.push(`GEMINI_MODEL ${assistant.fallbackFrom} is not available; Ask the Atlas switched to ${assistant.model}. Update GEMINI_MODEL.`);
 } catch (error) {
+  features.push("Ask the Atlas: not reachable");
   warnings.push(`Ask the Atlas could not be checked: ${error.message}`);
 }
+features.push(`Contact form: ${status?.contact?.configured ? "configured" : "not configured"} (no message sent)`);
+console.log(`Feature checks:\n- ${features.join("\n- ")}`);
 
 for (const w of warnings) console.warn(`warning: ${w}`);
 if (failures.length) {

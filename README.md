@@ -20,7 +20,7 @@ Live site: [anupam-roy.vercel.app](https://anupam-roy.vercel.app/)
 - **API:** Express 5, bundled with esbuild and deployed as Vercel functions; pino logging.
 - **Services:** Gemini (Ask the Atlas), Resend (contact form), GitHub, Crossref, DataCite, npm and PyPI (Workbench).
 - **Quality:** Vitest unit and integration tests, Playwright end-to-end tests in Chromium and WebKit with axe accessibility checks, ESLint 10, per-page weight budgets.
-- **Automation:** GitHub Actions for CI (Node 22 and 24), a full-history secret scan, and a smoke check plus mobile Lighthouse after every production deploy.
+- **Automation:** GitHub Actions for CI (Node 22 and 24), a full-history secret scan, and a smoke check of every route and API feature plus mobile Lighthouse after every production deploy.
 
 ## Documentation
 
@@ -49,7 +49,7 @@ Live site: [anupam-roy.vercel.app](https://anupam-roy.vercel.app/)
 |   |-- verify-portfolio-source.mjs
 |   |-- verify-dist.mjs          # post-build checks and per-page weight budgets
 |   |-- page-budgets.json
-|   |-- smoke.mjs                # read-only smoke check of a running deployment
+|   |-- smoke.mjs                # smoke check of a running deployment: routes, headers and every API feature
 |   `-- contact-check.mjs        # contact form check; --send delivers one labelled test message
 |-- docs/                        # design decisions, ADR, provider review
 |-- eslint.config.js

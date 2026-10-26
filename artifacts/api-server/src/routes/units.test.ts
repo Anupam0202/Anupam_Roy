@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { generationConfigFor, isModelUnavailable, resolveGeminiModel, thinkingConfigFor } from "./ai";
 import { redact } from "./client-error";
-import { validateContact } from "./contact";
+import { addressDomain, validateContact } from "./contact";
 import { githubTtlSeconds } from "./repository";
 
 describe("Gemini settings", () => {
@@ -46,6 +46,15 @@ describe("validateContact", () => {
   it("keeps the subject on one line and the message's line breaks", () => {
     const out = validateContact({ name: "Ada\u0000", email: "A@B.co", subject: "Hi\r\nBcc: x", message: "Line one\r\nline two is long enough" });
     expect(out).toEqual({ name: "Ada", email: "a@b.co", subject: "Hi Bcc: x", message: "Line one\nline two is long enough" });
+  });
+});
+
+describe("addressDomain", () => {
+  it("keeps only the domain of a bare or named address", () => {
+    expect(addressDomain("Someone@Example.COM")).toBe("example.com");
+    expect(addressDomain("Anupam Roy Portfolio <onboarding@resend.dev>")).toBe("resend.dev");
+    expect(addressDomain("no-at-sign")).toBe("no-at-sign");
+    expect(addressDomain("trailing@")).toBe("unknown");
   });
 });
 
