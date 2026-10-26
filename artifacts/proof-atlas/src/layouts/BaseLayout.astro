@@ -1,0 +1,108 @@
+---
+import { releaseSha } from "@workspace/proof-atlas-core/site/release";
+import "../styles/global.css";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { SITE, profile } from "@workspace/proof-atlas-core/data/profile";
+import { THEME_COLOR, THEME_INIT_SCRIPT } from "../lib/theme-script";
+import { footerNav } from "../lib/nav";
+import ogCards from "../lib/og-cards.json";
+// Preloaded so text renders in its final font and does not shift (CLS).
+import manropeFont from "@fontsource-variable/manrope/files/manrope-latin-wght-normal.woff2?url";
+import newsreaderItalicFont from "@fontsource-variable/newsreader/files/newsreader-latin-wght-italic.woff2?url";
+import plexMonoFont from "@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2?url";
+
+interface Props {
+  title: string;
+  description: string;
+  /** Social image card from src/lib/og-cards.json; defaults to the page's section, else the home card. */
+  ogCard?: OgCardKey;
+  /** "article" for case studies. */
+  ogType?: "website" | "article";
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown>;
+  /** Override the canonical path (defaults to the current URL path). */
+  canonicalPath?: string;
+  /** Preload the italic serif face; only pages that show .serif text need it. */
+  preloadSerif?: boolean;
+}
+
+type OgCardKey = keyof typeof ogCards;
+const { title, description, ogCard, ogType = "website", noindex = false, jsonLd, canonicalPath, preloadSerif = false } = Astro.props;
+const path = canonicalPath ?? Astro.url.pathname;
+const canonical = new URL(path, SITE.url).toString();
+const fullTitle = path === "/" ? `${profile.name} — ${profile.thesis}` : `${title} · ${profile.name}`;
+const section = path.split("/").filter(Boolean)[0] ?? "";
+const card = ogCards[ogCard ?? (section in ogCards ? (section as OgCardKey) : "home")];
+const ogUrl = new URL(`/og/${card.file}`, SITE.url).toString();
+
+// Breadcrumbs for inner pages: Home › section › page.
+const sectionItem = footerNav.find((item) => item.href === `/${section}/`);
+const crumbs = [
+  { name: "Home", url: SITE.url + "/" },
+  ...(sectionItem && sectionItem.href !== path ? [{ name: sectionItem.label, url: new URL(sectionItem.href, SITE.url).toString() }] : []),
+  { name: title, url: canonical },
+];
+const breadcrumbLd =
+  path === "/" || noindex
+    ? null
+    : {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: crumbs.map((c, i) => ({ "@type": "ListItem", position: i + 1, name: c.name, item: c.url })),
+      };
+const release = releaseSha(process.env) ?? "local";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="release" content={release} />
+    <link rel="preload" href={manropeFont} as="font" type="font/woff2" crossorigin />
+    {preloadSerif && <link rel="preload" href={newsreaderItalicFont} as="font" type="font/woff2" crossorigin />}
+    <link rel="preload" href={plexMonoFont} as="font" type="font/woff2" crossorigin />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content={profile.name} />
+    {noindex ? <meta name="robots" content="noindex, nofollow" /> : <link rel="canonical" href={canonical} />}
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content={THEME_COLOR.light} media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content={THEME_COLOR.dark} media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="sitemap" href="/sitemap.xml" />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:locale" content="en_GB" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={card.alt} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogUrl} />
+    <meta name="twitter:image:alt" content={card.alt} />
+    <script is:inline set:html={THEME_INIT_SCRIPT} />
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+    {breadcrumbLd && <script type="application/ld+json" set:html={JSON.stringify(breadcrumbLd)} />}
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <Header />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+    <script>
+      import "../scripts/scroll-regions";
+    </script>
+  </body>
+</html>

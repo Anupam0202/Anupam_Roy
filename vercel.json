@@ -1,51 +1,61 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
   "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "pnpm run build",
-  "outputDirectory": "artifacts/anupam-intelligence-systems/dist/public",
+  "outputDirectory": "artifacts/proof-atlas/dist",
+  "cleanUrls": false,
   "functions": { "api/index.js": { "maxDuration": 30 } },
+  "redirects": [
+    { "source": "/work", "destination": "/portfolio/", "permanent": true },
+    { "source": "/work/", "destination": "/portfolio/", "permanent": true },
+    { "source": "/work/:slug", "destination": "/portfolio/:slug/", "permanent": true },
+    { "source": "/work/:slug/", "destination": "/portfolio/:slug/", "permanent": true },
+    { "source": "/studio", "destination": "/workbench/", "permanent": true },
+    { "source": "/studio/", "destination": "/workbench/", "permanent": true },
+    { "source": "/studio/repository-lens/", "destination": "/workbench/repository/", "permanent": true },
+    { "source": "/studio/evidence-workbench/", "destination": "/workbench/documents/", "permanent": true },
+    { "source": "/studio/research-trail/", "destination": "/workbench/citations/", "permanent": true },
+    { "source": "/studio/earth-signals/", "destination": "/portfolio/plantpal/#earth-signals", "permanent": true },
+    { "source": "/studio/repository-lens", "destination": "/workbench/repository/", "permanent": true },
+    { "source": "/studio/evidence-workbench", "destination": "/workbench/documents/", "permanent": true },
+    { "source": "/studio/research-trail", "destination": "/workbench/citations/", "permanent": true },
+    { "source": "/studio/earth-signals", "destination": "/portfolio/plantpal/#earth-signals", "permanent": true },
+    { "source": "/((?!api(?:/|$))(?:[^/]+/)*[^/.]+)", "destination": "/$1/", "permanent": true }
+  ],
+  "rewrites": [{ "source": "/api/:path*", "destination": "/api/index" }],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "Content-Security-Policy",
-          "value": "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-src 'self'; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests"
-        },
+        { "key": "Content-Security-Policy", "value": "frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'" },
         { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
         { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" },
-        {
-          "key": "Permissions-Policy",
-          "value": "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
-        {
-          "key": "Strict-Transport-Security",
-          "value": "max-age=63072000; includeSubDomains; preload"
-        },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "X-Frame-Options", "value": "DENY" }
       ]
     },
     {
-      "source": "/assets/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
+      "source": "/_astro/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
     },
     {
       "source": "/certs/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "private, max-age=3600" },
+        { "key": "Cache-Control", "value": "public, max-age=86400" },
         { "key": "X-Robots-Tag", "value": "noindex, noarchive" }
       ]
+    },
+    {
+      "source": "/cert-thumbs/(.*)",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }]
+    },
+    {
+      "source": "/cert-thumbs-480/(.*)",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }]
     }
-  ],
-  "rewrites": [{ "source": "/api/:path*", "destination": "/api/index" }]
+  ]
 }

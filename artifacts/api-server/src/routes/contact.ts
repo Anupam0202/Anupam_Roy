@@ -1,13 +1,12 @@
-import { Resend } from "resend";
-import { Router, type IRouter, type Request, type Response } from "express";
+import { Router, type IRouter } from "express";
+import type { Deps } from "../lib/deps";
+import { clientKey, providerUnavailable, providerUserAgent, requireJson, tooMany, unavailable } from "../lib/http";
+import { ProviderUnavailable, contactConfigured, type ProviderClient } from "../lib/providers";
 import { createRateLimiter } from "../lib/rate-limit";
 
-const router: IRouter = Router();
-const isContactRateLimited = createRateLimiter({
-  limit: 3,
-  windowMs: 10 * 60_000,
-});
-const DEFAULT_FROM_EMAIL = "Anupam Roy Portfolio <onboarding@resend.dev>";
+const RESEND_EMAILS = "https://api.resend.com/emails";
+/** Resend's shared testing sender; it only delivers to the Resend account owner. */
+export const DEFAULT_FROM_EMAIL = "Anupam Roy Portfolio <onboarding@resend.dev>";
 
 interface ContactBody {
   name?: unknown;
@@ -17,164 +16,125 @@ interface ContactBody {
   company?: unknown;
 }
 
-type ResendEmailResult = Awaited<ReturnType<Resend["emails"]["send"]>>;
-type ResendEmailError = NonNullable<ResendEmailResult["error"]>;
+interface Parsed {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}
 
-function normalizeField(value: unknown, maxLength: number) {
-  return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
+/** Trims, removes control characters (keeping newlines where allowed) and clamps length. */
+function field(value: unknown, maxLength: number, multiline = false): string {
+  if (typeof value !== "string") return "";
+  // Matching control characters is the point of this pattern.
+  // eslint-disable-next-line no-control-regex
+  const controls = multiline ? /[\u0000-\u0009\u000B-\u001F\u007F]/g : /[\u0000-\u001F\u007F]+/g;
+  return value.replace(/\r\n?/g, "\n").replace(controls, multiline ? "" : " ").trim().slice(0, maxLength);
 }
 
 function escapeHtml(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 
-function validateContact(body: ContactBody) {
-  const name = normalizeField(body.name, 120);
-  const email = normalizeField(body.email, 180).toLowerCase();
-  const subject = normalizeField(body.subject, 160);
-  const message = normalizeField(body.message, 5_000);
-
-  if (!name || !email || !subject || !message) {
-    return { error: "Name, email, subject, and message are required." };
-  }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return { error: "Please provide a valid sender email." };
-  }
-  if (message.length < 20) {
-    return { error: "Please include at least 20 characters in the message." };
-  }
-
+export function validateContact(body: ContactBody): Parsed | { error: string } {
+  const name = field(body.name, 120);
+  const email = field(body.email, 180).toLowerCase();
+  // Single line: CR and LF can never reach the email headers.
+  const subject = field(body.subject, 160);
+  const message = field(body.message, 5_000, true);
+  if (!name || !email || !subject || !message) return { error: "Name, email, subject and message are required." };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "Please provide a valid email address." };
+  if (message.length < 20) return { error: "Please write at least 20 characters in the message." };
   return { name, email, subject, message };
 }
 
-function isSenderDomainError(error: ResendEmailError) {
-  const message = String(error.message ?? "").toLowerCase();
-  return (
-    error.statusCode === 403 &&
-    (message.includes("domain is not verified") ||
-      message.includes("verify your domain"))
-  );
-}
+type SendError = { status: number; name: string; message: string };
 
-function getSandboxRecipient(error: ResendEmailError) {
-  const message = String(error.message ?? "");
-  if (
-    error.statusCode !== 403 ||
-    !message.toLowerCase().includes("only send testing emails")
-  )
-    return null;
-  return message.match(/own email address \(([^)]+)\)/i)?.[1]?.trim() ?? null;
-}
+const isSenderDomainError = (e: SendError) => e.status === 403 && /domain is not verified|verify your domain/i.test(e.message);
+const isTestingOnlyError = (e: SendError) => e.status === 403 && /only send testing emails/i.test(e.message);
 
-router.post("/contact", async (req: Request, res: Response) => {
-  res.setHeader("Cache-Control", "no-store");
-  if (!req.is("application/json")) {
-    return void res
-      .status(415)
-      .json({ error: "Content-Type must be application/json." });
-  }
+export function createContactRouter(deps: Deps, providers: ProviderClient): IRouter {
+  const router = Router();
+  const limited = createRateLimiter({ limit: 3, windowMs: 10 * 60_000 });
 
-  const body = (req.body ?? {}) as ContactBody;
-  if (normalizeField(body.company, 120))
-    return void res.status(200).json({ ok: true });
+  router.post("/contact", async (req, res) => {
+    res.setHeader("Cache-Control", "no-store");
+    if (!requireJson(req, res)) return;
+    const body = (req.body ?? {}) as ContactBody;
+    // Honeypot: bots fill the hidden "company" field; pretend success.
+    if (field(body.company, 120)) return void res.status(200).json({ ok: true });
 
-  const ip = req.ip ?? req.socket.remoteAddress ?? "unknown";
-  if (isContactRateLimited(ip)) {
-    res.setHeader("Retry-After", "600");
-    return void res.status(429).json({
-      error:
-        "Too many contact attempts. Please wait a few minutes and try again.",
-    });
-  }
+    const parsed = validateContact(body);
+    if ("error" in parsed) return void res.status(400).json({ error: parsed.error });
 
-  const parsed = validateContact(body);
-  if ("error" in parsed)
-    return void res.status(400).json({ error: parsed.error });
+    // Counted after validation so fixing a typo does not use up an attempt.
+    if (limited(clientKey(req))) return tooMany(res, 600, "Too many messages from this connection. Please wait a few minutes and try again.");
 
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    req.log.warn({ route: "contact" }, "RESEND_API_KEY is missing");
-    return void res.status(503).json({
-      error: "Contact email service is not configured on the server.",
-    });
-  }
-
-  const to = process.env.CONTACT_TO_EMAIL?.trim() || "anupam020202@gmail.com";
-  const from = process.env.CONTACT_FROM_EMAIL?.trim() || DEFAULT_FROM_EMAIL;
-  const fallbackFrom =
-    process.env.CONTACT_FALLBACK_FROM_EMAIL?.trim() || DEFAULT_FROM_EMAIL;
-  const sandboxTo = process.env.RESEND_SANDBOX_TO_EMAIL?.trim();
-  const timestamp = new Date().toISOString();
-  const resend = new Resend(apiKey);
-
-  const sendMessage = (sender: string, recipient: string) =>
-    resend.emails.send({
-      from: sender,
-      to: recipient,
-      replyTo: parsed.email,
-      subject: `[Portfolio] ${parsed.subject}`,
-      text: [
-        `Sender name: ${parsed.name}`,
-        `Sender email: ${parsed.email}`,
-        `Subject: ${parsed.subject}`,
-        `Timestamp: ${timestamp}`,
-        "Source: portfolio contact form",
-        "",
-        parsed.message,
-      ].join("\n"),
-      html: `
-        <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827">
-          <h2>Portfolio contact form</h2>
-          <p><strong>Name:</strong> ${escapeHtml(parsed.name)}</p>
-          <p><strong>Email:</strong> ${escapeHtml(parsed.email)}</p>
-          <p><strong>Subject:</strong> ${escapeHtml(parsed.subject)}</p>
-          <p><strong>Timestamp:</strong> ${timestamp}</p>
-          <p><strong>Source:</strong> portfolio contact form</p>
-          <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0" />
-          <p>${escapeHtml(parsed.message).replace(/\n/g, "<br />")}</p>
-        </div>
-      `,
-    });
-
-  try {
-    let deliveredTo = to;
-    let { data, error } = await sendMessage(from, deliveredTo);
-
-    if (error && from !== fallbackFrom && isSenderDomainError(error)) {
-      ({ data, error } = await sendMessage(fallbackFrom, deliveredTo));
+    if (!contactConfigured(deps.env)) {
+      req.log.warn({ route: "contact" }, "Contact delivery is not configured (RESEND_API_KEY or CONTACT_TO_EMAIL missing)");
+      return unavailable(res, undefined, "The contact form is not available right now. Please email Anupam directly.");
     }
 
-    const fallbackRecipient = error
-      ? sandboxTo || getSandboxRecipient(error)
-      : null;
-    if (error && fallbackRecipient && fallbackRecipient !== deliveredTo) {
-      deliveredTo = fallbackRecipient;
-      ({ data, error } = await sendMessage(fallbackFrom, deliveredTo));
-    }
+    const env = deps.env;
+    const key = env.RESEND_API_KEY!.trim();
+    const to = env.CONTACT_TO_EMAIL!.trim();
+    const from = env.CONTACT_FROM_EMAIL?.trim() || DEFAULT_FROM_EMAIL;
+    const fallbackFrom = env.CONTACT_FALLBACK_FROM_EMAIL?.trim() || DEFAULT_FROM_EMAIL;
+    const sandboxTo = env.RESEND_SANDBOX_TO_EMAIL?.trim();
+    const timestamp = new Date(deps.now()).toISOString();
 
-    if (error) {
-      req.log.error(
-        { statusCode: error.statusCode, name: error.name },
-        "Resend contact request failed",
-      );
-      return void res.status(502).json({
-        error:
-          "Email delivery is temporarily unavailable. Please email Anupam directly.",
+    const send = async (sender: string, recipient: string): Promise<{ id?: string } | SendError> => {
+      const response = await providers.request("resend", RESEND_EMAILS, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "User-Agent": providerUserAgent() },
+        body: JSON.stringify({
+          from: sender,
+          to: [recipient],
+          reply_to: parsed.email,
+          subject: `[Portfolio] ${parsed.subject}`,
+          text: [
+            `Sender name: ${parsed.name}`,
+            `Sender email: ${parsed.email}`,
+            `Subject: ${parsed.subject}`,
+            `Timestamp: ${timestamp}`,
+            "Source: portfolio contact form",
+            "",
+            parsed.message,
+          ].join("\n"),
+          html: `<div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827"><h2>Portfolio contact form</h2><p><strong>Name:</strong> ${escapeHtml(parsed.name)}</p><p><strong>Email:</strong> ${escapeHtml(parsed.email)}</p><p><strong>Subject:</strong> ${escapeHtml(parsed.subject)}</p><p><strong>Timestamp:</strong> ${timestamp}</p><hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0" /><p>${escapeHtml(parsed.message).replace(/\n/g, "<br />")}</p></div>`,
+        }),
       });
+      let json: Record<string, unknown> = {};
+      try {
+        json = JSON.parse(response.text) as Record<string, unknown>;
+      } catch {
+        /* empty or non-JSON body */
+      }
+      if (response.status >= 200 && response.status < 300) return { id: typeof json.id === "string" ? json.id : undefined };
+      return { status: response.status, name: String(json.name ?? "error"), message: String(json.message ?? "") };
+    };
+
+    try {
+      // At most two attempts. On a sender-domain or testing-only refusal, the second
+      // goes from the fallback sender, to the sandbox recipient when one is configured
+      // (Resend's testing sender only delivers to the account owner).
+      let result = await send(from, to);
+      if ("status" in result) {
+        if (isSenderDomainError(result) && fallbackFrom !== from) result = await send(fallbackFrom, sandboxTo || to);
+        else if (isTestingOnlyError(result) && sandboxTo && sandboxTo !== to) result = await send(fallbackFrom, sandboxTo);
+      }
+      if ("status" in result) {
+        req.log.error({ provider: "resend", status: result.status, name: result.name }, "Contact delivery failed");
+        if (result.status === 429) return tooMany(res, 60, "The email service is busy. Please try again in a minute or email Anupam directly.");
+        return void res.status(502).json({ error: "The message could not be delivered. Please email Anupam directly." });
+      }
+      res.json({ ok: true, id: result.id });
+    } catch (error) {
+      if (error instanceof ProviderUnavailable) return providerUnavailable(res, error, "The contact form", deps.now());
+      req.log.error({ err: error }, "Contact delivery request failed");
+      res.status(502).json({ error: "The message could not be delivered. Please email Anupam directly." });
     }
+  });
 
-    res.json({ ok: true, id: data?.id });
-  } catch (error) {
-    req.log.error({ error }, "Contact email request failed");
-    res.status(502).json({
-      error: "Contact email could not be sent. Please email Anupam directly.",
-    });
-  }
-});
-
-export default router;
+  return router;
+}

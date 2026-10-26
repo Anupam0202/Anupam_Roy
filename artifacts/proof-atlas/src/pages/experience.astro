@@ -1,0 +1,283 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
+import EvidenceDrawer from "../components/EvidenceDrawer.astro";
+import EvidenceBadge from "../components/EvidenceBadge.astro";
+import { roles, operationsArchitecture } from "@workspace/proof-atlas-core/data/experience";
+import { outcomes, OUTCOME_QUALIFIER } from "@workspace/proof-atlas-core/data/profile";
+
+const views = [
+  { id: "overview", label: "Overview" },
+  { id: "systems", label: "Systems" },
+  { id: "technologies", label: "Technologies" },
+  { id: "lessons", label: "Lessons" },
+];
+---
+
+<BaseLayout title="Experience" description="Anupam Roy's progression at Accenture from Associate Software Engineer to AI/ML Analyst building production GenAI systems.">
+  <PageHero eyebrow="Experience" title="From software foundations to intelligent systems." lede="Two roles at Accenture: first backend services, delivery automation and quality gates; then multi-agent GenAI systems for enterprise operations. Client names and internal systems are intentionally left out." />
+
+  <section class="section section--tight" aria-labelledby="roles-h">
+    <div class="container">
+      <h2 id="roles-h" class="visually-hidden">Roles</h2>
+      <div class="career" data-tabs data-tabs-param="view">
+        <div role="tablist" aria-label="Experience views" class="segmented" hidden>
+          {
+            views.map((v, i) => (
+              <button role="tab" type="button" id={`view-tab-${v.id}`} aria-controls={`view-${v.id}`} aria-selected={i === 0 ? "true" : "false"} tabindex={i === 0 ? 0 : -1} data-value={v.id}>
+                {v.label}
+              </button>
+            ))
+          }
+        </div>
+
+        <section role="tabpanel" id="view-overview" aria-labelledby="view-tab-overview" class="view" tabindex="0">
+          <h3 class="view-title h4">Overview</h3>
+          <ol class="roles">
+            {
+              roles.map((r) => (
+                <li class="role card">
+                  <p class="mono muted">{r.period}</p>
+                  <h4 class="h3">{r.title}</h4>
+                  <p class="company">{r.company}</p>
+                  <p class="muted">{r.summary}</p>
+                  <p class="small"><strong>Focus:</strong> {r.focus}</p>
+                  <details class="disclosure built">
+                    <summary>What I built ({r.built.length})</summary>
+                    <div class="disclosure-body">
+                      <ul>{r.built.map((b) => <li>{b}</li>)}</ul>
+                    </div>
+                  </details>
+                </li>
+              ))
+            }
+          </ol>
+          <div class="outcomes">
+            <div class="cluster">
+              {outcomes.map((o) => (
+                <p class="outcome">
+                  <span class="value">{o.value}</span>
+                  <span class="small">{o.label}</span>
+                </p>
+              ))}
+            </div>
+            <p class="small muted qual"><EvidenceBadge status="owner_reported" claimId="exp-outcomes" /> {OUTCOME_QUALIFIER}</p>
+          </div>
+        </section>
+
+        <section role="tabpanel" id="view-systems" aria-labelledby="view-tab-systems" class="view" tabindex="0">
+          <h3 class="view-title h4">Systems</h3>
+          <ol class="roles">
+            {
+              roles.map((r) => (
+                <li class="role card">
+                  <p class="mono muted">{r.period} · {r.title}</p>
+                  <ul class="chips">{r.systems.map((s) => <li class="chip">{s}</li>)}</ul>
+                </li>
+              ))
+            }
+          </ol>
+        </section>
+
+        <section role="tabpanel" id="view-technologies" aria-labelledby="view-tab-technologies" class="view" tabindex="0">
+          <h3 class="view-title h4">Technologies</h3>
+          <ol class="roles">
+            {
+              roles.map((r) => (
+                <li class="role card">
+                  <p class="mono muted">{r.period} · {r.title}</p>
+                  <dl class="tech">
+                    {r.technologies.map((t) => (
+                      <div>
+                        <dt>{t.group}</dt>
+                        <dd>{t.items.join(" · ")}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </li>
+              ))
+            }
+          </ol>
+        </section>
+
+        <section role="tabpanel" id="view-lessons" aria-labelledby="view-tab-lessons" class="view" tabindex="0">
+          <h3 class="view-title h4">Lessons</h3>
+          <ol class="roles">
+            {
+              roles.map((r) => (
+                <li class="role card">
+                  <p class="mono muted">{r.period} · {r.title}</p>
+                  <ul class="lessons">
+                    {r.lessons.map((l) => (
+                      <li>
+                        <strong>{l.title}.</strong> {l.detail}
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))
+            }
+          </ol>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <section id="systems" class="section" aria-labelledby="arch-h">
+    <div class="container">
+      <p class="eyebrow">Illustrative</p>
+      <h2 id="arch-h" class="h3">How the operational AI work fits together</h2>
+      <p class="notice small qualifier-note">{operationsArchitecture.qualifier}</p>
+      <ol class="ops">
+        {
+          operationsArchitecture.stages.map((s, i) => (
+            <li class={s.id === "review" ? "ops-review" : undefined}>
+              <span class="mono muted">{String(i + 1).padStart(2, "0")}</span>
+              <span class="ops-name">{s.label}</span>
+              <span class="muted small">{s.detail}</span>
+            </li>
+          ))
+        }
+      </ol>
+      <div class="drawer">
+        <EvidenceDrawer claimIds={["exp-roles", "exp-platform", "exp-outcomes"]} summary="Evidence for this page" />
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  import { initTabs } from "../scripts/tabs";
+  initTabs();
+</script>
+
+<style>
+  .career [role="tablist"] {
+    margin-bottom: var(--space-5);
+  }
+  .career.tabs-ready .view-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .career:not(.tabs-ready) .view + .view {
+    margin-top: var(--space-8);
+  }
+  .view-title {
+    margin-bottom: var(--space-4);
+  }
+  .roles {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-5);
+  }
+  @media (min-width: 900px) {
+    .roles {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .role {
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+  }
+  .role:last-child {
+    border-color: var(--ink);
+  }
+  .company {
+    font-weight: 700;
+  }
+  .built ul,
+  .lessons {
+    margin: 0;
+    padding-left: 1.1em;
+    display: grid;
+    gap: 8px;
+    font-size: var(--text-sm);
+  }
+  .chips {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .tech {
+    margin: 0;
+    display: grid;
+    gap: var(--space-3);
+  }
+  .tech dt {
+    font-weight: 700;
+    font-size: var(--text-sm);
+  }
+  .tech dd {
+    margin: 2px 0 0;
+    color: var(--ink-muted);
+    font-size: var(--text-sm);
+  }
+  .outcomes {
+    margin-top: var(--space-6);
+  }
+  .outcome {
+    display: grid;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+  }
+  .value {
+    font-size: 2rem;
+    font-weight: 780;
+    letter-spacing: -0.03em;
+  }
+  .qual {
+    margin-top: var(--space-3);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .qualifier-note {
+    margin: var(--space-4) 0 var(--space-6);
+    max-width: 70ch;
+  }
+  .ops {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+  @media (min-width: 1024px) {
+    .ops {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 22px;
+    }
+  }
+  .ops li {
+    position: relative;
+    display: grid;
+    gap: 4px;
+    align-content: start;
+    padding: 14px;
+    border: 1px solid var(--ink);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+  }
+  .ops li.ops-review {
+    border-color: var(--copper);
+    background: var(--copper-soft);
+  }
+  .ops-name {
+    font-weight: 700;
+  }
+  .drawer {
+    margin-top: var(--space-6);
+  }
+</style>

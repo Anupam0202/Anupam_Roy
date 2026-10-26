@@ -1,0 +1,92 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PageHero from "../../components/PageHero.astro";
+
+const tools = [
+  {
+    href: "/workbench/repository/",
+    eyebrow: "Public GitHub data · server-assisted",
+    title: "Repository Evidence Graph",
+    text: "Enter a public repository and get its identity, licence, README structure, releases, languages and root manifests as a graph — with an explicit coverage table of what was not inspected. Export JSON or CSV.",
+    sends: "Sends only owner/repo to this site's API.",
+  },
+  {
+    href: "/workbench/documents/",
+    eyebrow: "Runs entirely in your browser",
+    title: "Local Document Evidence",
+    text: "Load text, Markdown, JSON or CSV files and search them with BM25, exact phrases and rank fusion. Every result shows its exact location; export the passages you choose as an evidence packet.",
+    sends: "Sends nothing. Works offline once loaded.",
+  },
+  {
+    href: "/workbench/citations/",
+    eyebrow: "Crossref + DataCite",
+    title: "Citation Integrity",
+    text: "Resolve DOIs, search bibliographic metadata, compare Crossref with DataCite, flag missing fields and export BibTeX, RIS or CSL-JSON — deterministically.",
+    sends: "Sends the DOI or search words to this site's API.",
+  },
+];
+---
+
+<BaseLayout title="Proof Workbench" description="Useful engineering workflows built on the same evidence principles as the portfolio: repository evidence, local document search and citation integrity.">
+  <PageHero eyebrow="Proof Workbench" title="Tools that show their working." lede="Three small workflows, no account needed. Each one says what it inspected, what it did not, and what left your browser." />
+  <section class="section">
+    <div class="container">
+      <ul class="tools">
+        {
+          tools.map((t) => (
+            <li class="card tool-card">
+              <p class="eyebrow">{t.eyebrow}</p>
+              <h2 class="h3">
+                <a class="card-link" href={t.href}>{t.title}</a>
+              </h2>
+              <p class="muted">{t.text}</p>
+              <p class="small sends">{t.sends}</p>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="notice small principles">
+        Workbench principles: no arbitrary URL fetching, no recursive crawling, no private repositories, no security verdicts from absent evidence, and no document uploads. Provider limits and terms are listed on the <a href="/privacy/">privacy page</a>.
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .tools {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-5);
+  }
+  .tool-card {
+    display: grid;
+    gap: var(--space-3);
+  }
+  @media (min-width: 1024px) {
+    .tool-card {
+      grid-template-columns: 0.9fr 1.1fr;
+      column-gap: var(--space-8);
+      align-items: start;
+    }
+    .tool-card .eyebrow,
+    .tool-card h2 {
+      grid-column: 1;
+    }
+    .tool-card .muted,
+    .tool-card .sends {
+      grid-column: 2;
+    }
+    .tool-card .muted {
+      grid-row: 1 / span 2;
+    }
+  }
+  .sends {
+    font-weight: 650;
+  }
+  .principles {
+    margin-top: var(--space-7);
+    max-width: 80ch;
+  }
+</style>

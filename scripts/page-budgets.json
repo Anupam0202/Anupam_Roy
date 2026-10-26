@@ -1,0 +1,247 @@
+{
+  "/404": {
+    "js": 2048,
+    "css": 9216,
+    "html": 4096,
+    "font": 46080,
+    "img": 1024
+  },
+  "/about/": {
+    "js": 2048,
+    "css": 10240,
+    "html": 6144,
+    "font": 46080,
+    "img": 1024
+  },
+  "/contact/": {
+    "js": 4096,
+    "css": 10240,
+    "html": 5120,
+    "font": 46080,
+    "img": 1024
+  },
+  "/credentials/": {
+    "js": 82944,
+    "css": 11264,
+    "html": 19456,
+    "font": 46080,
+    "img": 1880064
+  },
+  "/experience/": {
+    "js": 3072,
+    "css": 11264,
+    "html": 8192,
+    "font": 46080,
+    "img": 1024
+  },
+  "/": {
+    "js": 3072,
+    "css": 12288,
+    "html": 12288,
+    "font": 120832,
+    "img": 1024
+  },
+  "/lab/architecture-xray/": {
+    "js": 2048,
+    "css": 10240,
+    "html": 9216,
+    "font": 46080,
+    "img": 1024
+  },
+  "/lab/binary-search/": {
+    "js": 74752,
+    "css": 9216,
+    "html": 9216,
+    "font": 46080,
+    "img": 1024
+  },
+  "/lab/dijkstra/": {
+    "js": 76800,
+    "css": 9216,
+    "html": 9216,
+    "font": 46080,
+    "img": 1024
+  },
+  "/lab/": {
+    "js": 2048,
+    "css": 10240,
+    "html": 5120,
+    "font": 46080,
+    "img": 1024
+  },
+  "/lab/retrieval-fusion/": {
+    "js": 75776,
+    "css": 10240,
+    "html": 10240,
+    "font": 46080,
+    "img": 1024
+  },
+  "/portfolio/ahawin/": {
+    "js": 2048,
+    "css": 10240,
+    "html": 7168,
+    "font": 46080,
+    "img": 1024
+  },
+  "/portfolio/anupam-portfolio/": {
+    "js": 2048,
+    "css": 10240,
+    "html": 6144,
+    "font": 46080,
+    "img": 1024
+  },
+  "/portfolio/boxshield-arena/": {
+    "js": 2048,
+    "css": 10240,
+    "html": 6144,
+    "font": 46080,
+    "img": 1024
+  },
+  "/portfolio/contextual-rag-chatbot/": {
+    "js": 2048,
+    "css": 10240,
+    "html": 6144,
+    "font": 46080,
+    "img": 1024
+  },
+  "/portfolio/cutline/": {
+    "js": 2048,
+    "css": 10240,
+    "html": 7168,
+    "font": 46080,
+    "img": 1024
+  },
+  "/portfolio/food-bank-recall-closure-agent/": {
+    "js": 2048,
+    "css": 10240,
+    "html": 7168,
+    "font": 46080,
+    "img": 1024
+  },
+  "/portfolio/handwritten-chemical-compound-detection/": {
+    "js": 2048,
+    "css": 10240,
+    "html": 6144,
+    "font": 46080,
+    "img": 1024
+  },
+  "/portfolio/": {
+    "js": 3072,
+    "css": 11264,
+    "html": 18432,
+    "font": 46080,
+    "img": 1024
+  },
+  "/portfolio/mavunoguard-ai/": {
+    "js": 2048,
+    "css": 10240,
+    "html": 6144,
+    "font": 46080,
+    "img": 1024
+  },
+  "/portfolio/modern-ui-ux-gpt3/": {
+    "js": 2048,
+    "css": 10240,
+    "html": 6144,
+    "font": 46080,
+    "img": 1024
+  },
+  "/portfolio/my-portfolio/": {
+    "js": 2048,
+    "css": 10240,
+    "html": 6144,
+    "font": 46080,
+    "img": 1024
+  },
+  "/portfolio/nexusrag/": {
+    "js": 2048,
+    "css": 12288,
+    "html": 15360,
+    "font": 120832,
+    "img": 1024
+  },
+  "/portfolio/pantryproof/": {
+    "js": 2048,
+    "css": 10240,
+    "html": 7168,
+    "font": 46080,
+    "img": 1024
+  },
+  "/portfolio/plantpal/": {
+    "js": 3072,
+    "css": 12288,
+    "html": 13312,
+    "font": 120832,
+    "img": 1024
+  },
+  "/portfolio/raceproof/": {
+    "js": 2048,
+    "css": 10240,
+    "html": 7168,
+    "font": 46080,
+    "img": 1024
+  },
+  "/portfolio/rag/": {
+    "js": 2048,
+    "css": 10240,
+    "html": 6144,
+    "font": 46080,
+    "img": 1024
+  },
+  "/portfolio/real-estate/": {
+    "js": 2048,
+    "css": 10240,
+    "html": 6144,
+    "font": 46080,
+    "img": 1024
+  },
+  "/portfolio/recordcheck/": {
+    "js": 2048,
+    "css": 10240,
+    "html": 6144,
+    "font": 46080,
+    "img": 1024
+  },
+  "/privacy/": {
+    "js": 2048,
+    "css": 9216,
+    "html": 7168,
+    "font": 46080,
+    "img": 1024
+  },
+  "/sources/": {
+    "js": 77824,
+    "css": 10240,
+    "html": 24576,
+    "font": 46080,
+    "img": 1024
+  },
+  "/workbench/citations/": {
+    "js": 78848,
+    "css": 10240,
+    "html": 8192,
+    "font": 46080,
+    "img": 1024
+  },
+  "/workbench/documents/": {
+    "js": 81920,
+    "css": 10240,
+    "html": 8192,
+    "font": 46080,
+    "img": 1024
+  },
+  "/workbench/": {
+    "js": 2048,
+    "css": 10240,
+    "html": 5120,
+    "font": 46080,
+    "img": 1024
+  },
+  "/workbench/repository/": {
+    "js": 80896,
+    "css": 10240,
+    "html": 8192,
+    "font": 46080,
+    "img": 1024
+  }
+}

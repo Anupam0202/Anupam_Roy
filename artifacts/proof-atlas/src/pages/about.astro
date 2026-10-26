@@ -1,0 +1,153 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
+import EvidenceBadge from "../components/EvidenceBadge.astro";
+import ExternalLink from "../components/ExternalLink.astro";
+import { profile, principles, education, skillGroups } from "@workspace/proof-atlas-core/data/profile";
+---
+
+<BaseLayout title="About" description="About Anupam Roy: principles, education and the skills behind his AI and software engineering work.">
+  <PageHero eyebrow="About" title="Engineer first, then the model." lede={`${profile.name} is an ${profile.currentTitle} at ${profile.employer} in ${profile.location}. He builds retrieval systems and AI-assisted workflows, and before that built Java services, serverless components and delivery pipelines. Outside work, competitive programming keeps his algorithms sharp.`} />
+
+  <section class="section" aria-labelledby="principles-h">
+    <div class="container two-col">
+      <h2 id="principles-h" class="h3">Principles</h2>
+      <ul class="principles">
+        {
+          principles.map((p) => (
+            <li>
+              <h3 class="h4">{p.title}</h3>
+              <p class="muted">{p.detail}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section id="education" class="section" aria-labelledby="education-h">
+    <div class="container two-col">
+      <div>
+        <h2 id="education-h" class="h3">Education</h2>
+        <p class="small education-note"><EvidenceBadge status="owner_reported" claimId="edu-btech" /></p>
+      </div>
+      <ol class="education">
+        {
+          education.map((e) => (
+            <li class="card">
+              <p class="mono muted">{e.period}</p>
+              <h3 class="h4">{e.title}</h3>
+              <p class="muted">
+                {e.college} · {e.institution}
+              </p>
+              <p class="result">{e.result}</p>
+              {e.coursework.length > 0 && <p class="small muted">Coursework: {e.coursework.join(", ")}</p>}
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="skills-h">
+    <div class="container two-col">
+      <h2 id="skills-h" class="h3">Working skills</h2>
+      <dl class="skills">
+        {
+          skillGroups.map((g) => (
+            <div>
+              <dt>{g.title}</dt>
+              <dd class="cluster">{g.skills.map((s) => <span class="chip">{s}</span>)}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="elsewhere-h">
+    <div class="container two-col">
+      <h2 id="elsewhere-h" class="h3">Elsewhere</h2>
+      <ul class="links">
+        <li><ExternalLink href={profile.links.github}>GitHub — Anupam0202</ExternalLink></li>
+        <li><ExternalLink href={profile.links.linkedin}>LinkedIn — anupam--roy</ExternalLink></li>
+        <li><ExternalLink href={profile.links.credly}>Credly — anupam_roy</ExternalLink></li>
+        <li><ExternalLink href={profile.links.codechef}>CodeChef — anupam_roy</ExternalLink></li>
+        <li><a href={`mailto:${profile.email}`}>{profile.email}</a></li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .two-col {
+    display: grid;
+    gap: var(--space-5);
+  }
+  @media (min-width: 1024px) {
+    .two-col {
+      grid-template-columns: minmax(0, 0.32fr) minmax(0, 1fr);
+      gap: var(--space-8);
+    }
+  }
+  .principles {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-5);
+  }
+  @media (min-width: 640px) {
+    .principles {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .principles li {
+    display: grid;
+    gap: var(--space-2);
+    padding-top: var(--space-4);
+    border-top: 2px solid var(--ink);
+  }
+  .education-note {
+    margin-top: var(--space-3);
+  }
+  .education {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-4);
+  }
+  .education li {
+    display: grid;
+    gap: 6px;
+  }
+  .result {
+    font-weight: 700;
+  }
+  .skills {
+    margin: 0;
+    display: grid;
+    gap: var(--space-5);
+  }
+  .skills dt {
+    font-weight: 700;
+    margin-bottom: var(--space-2);
+  }
+  .skills dd {
+    margin: 0;
+  }
+  .links {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 6px;
+  }
+  .links a {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    font-weight: 650;
+  }
+</style>

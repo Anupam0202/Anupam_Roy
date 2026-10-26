@@ -1,0 +1,27 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PageHero from "../../components/PageHero.astro";
+import BinarySearchExplorer from "../../islands/BinarySearchExplorer";
+---
+
+<BaseLayout title="Binary Search" description="Step through iterative binary search on a sorted array: low, high, mid, each comparison and the interval that remains.">
+  <PageHero eyebrow="Lab / search" title="Binary Search" lede="Each comparison with the middle element rules out half of what is left. Twelve numbers take at most four comparisons; a million take at most twenty." />
+  <section class="section section--tight">
+    <div class="container">
+      <BinarySearchExplorer client:visible />
+      <noscript><p class="notice small">Stepping needs JavaScript. Open “All steps as a table” above for the full trace of the example.</p></noscript>
+    </div>
+  </section>
+  <section class="section section--tight">
+    <div class="container reading prose">
+      <h2 class="h3">What the explorer checks</h2>
+      <ul>
+        <li>The input must be sorted in non-decreasing order. Unsorted input is reported, not silently sorted, because a search on unsorted data gives wrong answers without any error.</li>
+        <li>Every value must be a finite number.</li>
+        <li>With duplicates, the search returns <em>an</em> index holding the target, not necessarily the first one.</li>
+      </ul>
+      <h2 class="h3">Why mid = low + ⌊(high − low) / 2⌋</h2>
+      <p>It is the same as ⌊(low + high) / 2⌋ but never computes low + high, which can overflow in languages with fixed-width integers. In JavaScript it makes no difference; it is kept because it is the habit worth teaching.</p>
+    </div>
+  </section>
+</BaseLayout>

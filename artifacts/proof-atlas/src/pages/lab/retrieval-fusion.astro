@@ -1,0 +1,33 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PageHero from "../../components/PageHero.astro";
+import EvidenceDrawer from "../../components/EvidenceDrawer.astro";
+import RrfExplorer from "../../islands/RrfExplorer";
+---
+
+<BaseLayout title="Reciprocal Rank Fusion" description="Step through Reciprocal Rank Fusion with every score term shown, change k, and compare it with NexusRAG's deployed gateway blend.">
+  <PageHero eyebrow="Lab / ranking" title="Reciprocal Rank Fusion" lede="Two search systems disagree about which document is best. RRF merges them using only positions, so it never has to compare scores that were measured on different scales." />
+  <section class="section section--tight">
+    <div class="container">
+      <RrfExplorer client:visible />
+      <noscript><p class="notice small">Editing needs JavaScript. The example above is computed at build time with the same function.</p></noscript>
+    </div>
+  </section>
+  <section class="section section--tight">
+    <div class="container reading prose">
+      <h2 class="h3">Reading the result</h2>
+      <p>With the example rankings, D1 is near the top of both lists — second lexically, first semantically — so it wins. D2 is first lexically but missing from the semantic list, so it falls below D3, which sits in the middle of both lists. RRF rewards agreement between systems more than a single top position.</p>
+      <p>The constant k decides how much rank position matters. With a small k the first place is worth much more than the second; with a large k positions count almost equally and documents found by more systems win. 60 is the value from the original paper and a common default.</p>
+      <h2 class="h3">Rules this implementation follows</h2>
+      <ul>
+        <li>Ranks start at 1; a document missing from a ranking contributes 0.</li>
+        <li>k must be a finite number greater than 0; anything else is rejected, not clamped.</li>
+        <li>A repeated id inside one ranking keeps its first (best) position and produces a warning.</li>
+        <li>Equal scores are ordered by document id, so the result never depends on input order.</li>
+      </ul>
+      <h2 class="h3">How NexusRAG differs</h2>
+      <p>NexusRAG's deployed gateway does not call a pure RRF function. It blends rank contributions with a dense weight α and adds a small bonus for lexical term coverage. Tick “Compare” above to see where the two orders agree and where they part.</p>
+      <EvidenceDrawer claimIds={["nexus-fusion", "nexus-research-pipeline"]} summary="Evidence for the NexusRAG comparison" />
+    </div>
+  </section>
+</BaseLayout>

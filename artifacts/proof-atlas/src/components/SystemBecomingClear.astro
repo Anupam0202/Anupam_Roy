@@ -1,0 +1,325 @@
+---
+/**
+ * Signature hero illustration. Five layers; the stage list below is both the
+ * control and the text equivalent. Without JavaScript every layer is visible.
+ */
+const stages = [
+  { id: "inputs", label: "Ambiguous inputs", detail: "Tickets, documents, logs and data that do not yet agree with each other." },
+  { id: "constraints", label: "Constraints", detail: "What the system must never do, what it may cost and who has to trust it." },
+  { id: "decisions", label: "Decisions", detail: "Routing, retrieval and review choices made against those constraints." },
+  { id: "architecture", label: "Architecture", detail: "Bounded components with clear inputs, outputs and failure behaviour." },
+  { id: "evidence", label: "Evidence", detail: "Every answer traces back to the sources it came from." },
+];
+const scatter = [
+  [48, 70, 5], [96, 128, 3], [62, 196, 7], [140, 96, 4], [118, 250, 5], [40, 300, 3],
+  [160, 330, 6], [84, 388, 4], [150, 420, 3], [190, 180, 3], [30, 430, 5], [200, 270, 4],
+];
+const fragments = [
+  [56, 150, 44], [120, 206, 36], [70, 348, 48], [104, 296, 30], [24, 236, 40], [150, 380, 34],
+];
+---
+
+<figure class="sbc" data-stage="5" aria-labelledby="sbc-caption">
+  <div class="canvas">
+    <svg class="wide" viewBox="0 0 640 480" role="presentation" aria-hidden="true" focusable="false">
+      <g data-layer="1" class="layer">
+        {scatter.map(([x, y, r]) => <circle cx={x} cy={y} r={r} class="dot" />)}
+        {fragments.map(([x, y, w]) => <rect x={x} y={y} width={w} height="4" rx="2" class="frag" />)}
+      </g>
+      <g data-layer="2" class="layer">
+        <rect x="228" y="56" width="384" height="368" rx="26" class="bound" />
+        <path d="M228 108v-26a26 26 0 0 1 26-26h26M612 372v26a26 26 0 0 1-26 26h-26" class="bound-corner" />
+        <rect x="222" y="232" width="12" height="16" rx="3" class="gate" />
+      </g>
+      <g data-layer="3" class="layer">
+        <path d="M62 196C150 196 180 140 262 140M118 250C190 250 200 240 262 240M160 330C210 330 220 340 262 340M140 96C200 96 220 140 262 140M84 388C190 388 210 340 262 340" class="flow" />
+        {[140, 240, 340].map((y) => <path d={`M270 ${y - 12}l12 12-12 12-12-12z`} class="diamond" />)}
+      </g>
+      <g data-layer="4" class="layer">
+        <path d="M282 140H330M282 240H330M282 340H330M416 130C440 130 430 185 450 185M416 240C436 240 436 185 450 185M416 240C436 240 436 295 450 295M416 350C440 350 430 295 450 295M536 185C552 185 548 240 562 240M536 295C552 295 548 240 562 240" class="wire" />
+        {[110, 220, 330].map((y) => <rect x="330" y={y} width="86" height="40" rx="10" class="block" />)}
+        {[165, 275].map((y) => <rect x="450" y={y} width="86" height="40" rx="10" class="block block--b" />)}
+        {[110, 220, 330].map((y) => <path d={`M344 ${y + 20}h28`} class="block-line" />)}
+        {[165, 275].map((y) => <path d={`M464 ${y + 20}h34`} class="block-line" />)}
+      </g>
+      <g data-layer="5" class="layer">
+        <path d="M580 222C560 120 300 40 140 96M580 258C560 380 320 440 84 388" class="trace" />
+        <circle cx="580" cy="240" r="20" class="evidence" />
+        <path d="M571 240l6 6 12-13" class="tick" />
+        {[[140, 96], [84, 388]].map(([x, y]) => <circle cx={x} cy={y} r="9" class="ring" />)}
+      </g>
+    </svg>
+    <svg class="tall" viewBox="0 0 360 420" role="presentation" aria-hidden="true" focusable="false">
+      <g data-layer="1" class="layer">
+        {[[30, 36, 5], [70, 24, 3], [110, 44, 6], [160, 22, 4], [200, 48, 3], [246, 30, 5], [290, 52, 4], [330, 26, 3]].map(([x, y, r]) => (
+          <circle cx={x} cy={y} r={r} class="dot" />
+        ))}
+        {[[46, 62, 40], [180, 66, 44], [268, 70, 30]].map(([x, y, w]) => <rect x={x} y={y} width={w} height="4" rx="2" class="frag" />)}
+      </g>
+      <g data-layer="2" class="layer">
+        <rect x="16" y="100" width="328" height="300" rx="24" class="bound" />
+      </g>
+      <g data-layer="3" class="layer">
+        <path d="M70 28C70 90 90 120 90 136M200 48C200 100 180 120 180 136M290 52C290 100 270 120 270 136" class="flow" />
+        {[90, 180, 270].map((x) => <path d={`M${x} 136l12 12-12 12-12-12z`} class="diamond" />)}
+      </g>
+      <g data-layer="4" class="layer">
+        <path d="M90 160V190M180 160V190M270 160V190M90 226C90 250 135 250 135 262M180 226C180 250 135 250 135 262M180 226C180 250 225 250 225 262M270 226C270 250 225 250 225 262M135 298C135 320 180 320 180 334M225 298C225 320 180 320 180 334" class="wire" />
+        {[52, 142, 232].map((x) => <rect x={x} y="190" width="76" height="36" rx="10" class="block" />)}
+        {[97, 187].map((x) => <rect x={x} y="262" width="76" height="36" rx="10" class="block block--b" />)}
+      </g>
+      <g data-layer="5" class="layer">
+        <circle cx="180" cy="354" r="20" class="evidence" />
+        <path d="M171 354l6 6 12-13" class="tick" />
+      </g>
+    </svg>
+  </div>
+  <figcaption id="sbc-caption" class="visually-hidden">
+    Illustration: scattered inputs pass through a constraint boundary, decision points and a structured architecture into a single evidence node that traces back to its sources.
+  </figcaption>
+  <ol class="stages" aria-label="How a system becomes clear">
+    {
+      stages.map((s, i) => (
+        <li>
+          <button type="button" class="stage" data-stage-button={i + 1} aria-pressed="false" disabled>
+            <span class="num mono">{String(i + 1).padStart(2, "0")}</span>
+            <span class="stage-text">
+              <span class="stage-label">{s.label}</span>
+              <span class="stage-detail">{s.detail}</span>
+            </span>
+          </button>
+        </li>
+      ))
+    }
+  </ol>
+  <p class="stage-caption" aria-live="polite"></p>
+</figure>
+
+<script>
+  document.querySelectorAll<HTMLElement>(".sbc").forEach((figure) => {
+    const buttons = [...figure.querySelectorAll<HTMLButtonElement>("[data-stage-button]")];
+    const caption = figure.querySelector<HTMLElement>(".stage-caption");
+    const select = (stage: number) => {
+      figure.dataset.stage = String(stage);
+      buttons.forEach((b) => {
+        const active = Number(b.dataset.stageButton) === stage;
+        b.setAttribute("aria-pressed", String(active));
+        if (active && caption) {
+          const label = b.querySelector(".stage-label")?.textContent ?? "";
+          const detail = b.querySelector(".stage-detail")?.textContent ?? "";
+          caption.textContent = `${label}: ${detail}`;
+        }
+      });
+    };
+    buttons.forEach((b) => {
+      b.disabled = false;
+      b.addEventListener("click", () => select(Number(b.dataset.stageButton)));
+    });
+    figure.classList.add("is-interactive");
+    select(5);
+  });
+</script>
+
+<style>
+  .sbc {
+    margin: 0;
+  }
+  .canvas {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background:
+      linear-gradient(var(--line-soft) 1px, transparent 1px) 0 0 / 32px 32px,
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px) 0 0 / 32px 32px,
+      var(--surface);
+    padding: clamp(8px, 2vw, 20px);
+  }
+  .tall {
+    display: none;
+  }
+  @media (max-width: 640px) {
+    .wide {
+      display: none;
+    }
+    .tall {
+      display: block;
+    }
+  }
+  .layer {
+    transition: opacity var(--dur-diagram) var(--ease);
+  }
+  .sbc[data-stage="1"] [data-layer="2"],
+  .sbc[data-stage="1"] [data-layer="3"],
+  .sbc[data-stage="1"] [data-layer="4"],
+  .sbc[data-stage="1"] [data-layer="5"],
+  .sbc[data-stage="2"] [data-layer="3"],
+  .sbc[data-stage="2"] [data-layer="4"],
+  .sbc[data-stage="2"] [data-layer="5"],
+  .sbc[data-stage="3"] [data-layer="4"],
+  .sbc[data-stage="3"] [data-layer="5"],
+  .sbc[data-stage="4"] [data-layer="5"] {
+    opacity: 0.1;
+  }
+  .dot {
+    fill: var(--ink-muted);
+    opacity: 0.75;
+  }
+  .frag {
+    fill: var(--line-strong);
+    opacity: 0.6;
+  }
+  .bound {
+    fill: none;
+    stroke: var(--copper);
+    stroke-width: 1.5;
+    stroke-dasharray: 6 7;
+  }
+  .bound-corner {
+    fill: none;
+    stroke: var(--copper);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  .gate {
+    fill: var(--copper);
+  }
+  .flow {
+    fill: none;
+    stroke: var(--ink-muted);
+    stroke-width: 1.2;
+    opacity: 0.7;
+  }
+  .diamond {
+    fill: var(--surface);
+    stroke: var(--ink);
+    stroke-width: 1.6;
+  }
+  .wire {
+    fill: none;
+    stroke: var(--tech);
+    stroke-width: 1.6;
+  }
+  .block {
+    fill: var(--surface);
+    stroke: var(--ink);
+    stroke-width: 1.4;
+  }
+  .block--b {
+    fill: var(--tech-soft);
+  }
+  .block-line {
+    stroke: var(--line-strong);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  .trace {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1;
+    stroke-dasharray: 2 5;
+    opacity: 0.55;
+  }
+  .evidence {
+    fill: var(--signal);
+    stroke: var(--signal-ink);
+    stroke-width: 2;
+  }
+  .tick {
+    fill: none;
+    stroke: var(--signal-ink);
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .ring {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.2;
+  }
+  .stages {
+    list-style: none;
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+  }
+  /* Wide screens: three cards over two, filling the row, with the number above the
+     label so even the narrowest card holds "Architecture" on one line. */
+  @media (min-width: 900px) {
+    .stages {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+    .stages li {
+      grid-column: span 2;
+    }
+    .stages li:nth-child(n + 4) {
+      grid-column: span 3;
+    }
+    .stage {
+      flex-direction: column;
+      gap: 2px;
+    }
+    .num {
+      padding-top: 0;
+    }
+  }
+  .stage {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    text-align: left;
+    padding: 10px 12px;
+    min-height: 44px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .stage:disabled {
+    cursor: default;
+    opacity: 1;
+  }
+  .stage[aria-pressed="true"] {
+    border-color: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--ink);
+  }
+  .num {
+    color: var(--ink-muted);
+    font-size: var(--text-xs);
+    padding-top: 2px;
+  }
+  .stage-text {
+    display: grid;
+    gap: 2px;
+  }
+  .stage-label {
+    font-weight: 700;
+    font-size: var(--text-sm);
+  }
+  .stage-detail {
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+    line-height: 1.45;
+  }
+  .stage-caption {
+    margin-top: var(--space-3);
+    min-height: 1.6em;
+    font-size: var(--text-sm);
+    color: var(--ink-muted);
+  }
+  .sbc:not(.is-interactive) .stage-caption {
+    display: none;
+  }
+  @media (min-width: 900px) {
+    .sbc.is-interactive .stage-detail {
+      display: none;
+    }
+  }
+  @media (max-width: 899px) {
+    .sbc.is-interactive .stage-caption {
+      display: none;
+    }
+  }
+</style>

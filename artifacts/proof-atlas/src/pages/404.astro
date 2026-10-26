@@ -1,0 +1,45 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Page not found" description="This page does not exist. Links to the main sections of the Proof Atlas portfolio." noindex>
+  <section class="section">
+    <div class="container reading stack stack--md">
+      <p class="eyebrow">404 · Not found</p>
+      <h1 class="h2">This path isn't part of the atlas.</h1>
+      <p class="lead">The page may have moved when the portfolio was rebuilt. These are the main destinations:</p>
+      <ul class="links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/portfolio/">Portfolio</a></li>
+        <li><a href="/workbench/">Proof Workbench</a></li>
+        <li><a href="/lab/">Engineering Lab</a></li>
+        <li><a href="/experience/">Experience</a></li>
+        <li><a href="/credentials/">Credentials</a></li>
+        <li><a href="/about/">About</a></li>
+        <li><a href="/contact/">Contact</a></li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .links {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-full);
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 650;
+  }
+</style>

@@ -1,0 +1,101 @@
+---
+/**
+ * Non-modal evidence drawer: a native <details> listing the ledger entries
+ * behind a section. Works without JavaScript.
+ */
+import { claimById } from "@workspace/proof-atlas-core/data/claims";
+import { METHOD_LABEL } from "@workspace/proof-atlas-core/evidence/types";
+import EvidenceBadge from "./EvidenceBadge.astro";
+import ExternalLink from "./ExternalLink.astro";
+
+interface Props {
+  claimIds: string[];
+  summary?: string;
+  open?: boolean;
+}
+const { claimIds, summary = "Evidence for this section", open = false } = Astro.props;
+const items = claimIds.map((id) => {
+  const claim = claimById(id);
+  if (!claim) throw new Error(`EvidenceDrawer: unknown claim ${id}`);
+  return claim;
+});
+---
+
+<details class="disclosure evidence-drawer" open={open}>
+  <summary>
+    <span>{summary}</span>
+    <span class="chip chip--count">{items.length} {items.length === 1 ? "source" : "sources"}</span>
+  </summary>
+  <div class="disclosure-body">
+    <ol class="claims">
+      {
+        items.map((c) => (
+          <li>
+            <div class="cluster">
+              <EvidenceBadge status={c.status} />
+              <span class="chip">{METHOD_LABEL[c.method]}</span>
+            </div>
+            <p class="claim">{c.claim}</p>
+            {c.sourceExcerpt && <blockquote class="excerpt">{c.sourceExcerpt}</blockquote>}
+            {c.limitations && c.limitations.length > 0 && (
+              <ul class="limits">
+                {c.limitations.map((l) => (
+                  <li>{l}</li>
+                ))}
+              </ul>
+            )}
+            <p class="source small">
+              {c.sourceUrl ? <ExternalLink href={c.sourceUrl}>{c.path ?? c.sourceTitle ?? "Source"}</ExternalLink> : <span>{c.sourceTitle ?? c.path}</span>}
+              {c.commitSha && <span class="mono muted"> @ {c.commitSha.slice(0, 7)}</span>}
+              {c.verifiedAt && <span class="muted"> · reviewed {c.verifiedAt}</span>}
+              <span class="muted"> · </span>
+              <a href={`/sources/#${c.id}`}>In the ledger</a>
+            </p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</details>
+
+<style>
+  .claims {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-5);
+  }
+  .claims > li {
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--line-soft);
+  }
+  .claims > li:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+  .claim {
+    margin-top: var(--space-2);
+    font-weight: 650;
+  }
+  .excerpt {
+    margin: var(--space-3) 0 0;
+    padding: 10px 14px;
+    border-left: 3px solid var(--tech);
+    background: var(--paper);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+  .limits {
+    margin: var(--space-3) 0 0;
+    padding-left: 1.1em;
+    font-size: var(--text-sm);
+    color: var(--ink-muted);
+  }
+  .source {
+    margin-top: var(--space-3);
+    overflow-wrap: anywhere;
+  }
+</style>

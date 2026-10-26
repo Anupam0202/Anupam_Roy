@@ -1,0 +1,69 @@
+name: Smoke
+
+# Read-only checks of a live deployment: after each successful Vercel
+# production deployment, or on demand for any base URL.
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Deployment to check
+        default: https://anupam-roy.vercel.app
+        required: true
+      expect_release:
+        description: Commit (7+ hex characters) that /api/status must report; empty to skip
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smoke-${{ github.event.deployment.sha || github.run_id }}
+  cancel-in-progress: false
+
+env:
+  # Production checks use the canonical domain; Vercel's per-deployment URLs may sit behind deployment protection.
+  BASE_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.base_url || 'https://anupam-roy.vercel.app' }}
+  EXPECT_RELEASE: ${{ github.event_name == 'workflow_dispatch' && inputs.expect_release || github.event.deployment.sha }}
+
+jobs:
+  smoke:
+    if: github.event_name == 'workflow_dispatch' || (github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Smoke check
+        run: |
+          if [ -n "$EXPECT_RELEASE" ]; then
+            node scripts/smoke.mjs "$BASE_URL" --expect-release "${EXPECT_RELEASE:0:7}"
+          else
+            node scripts/smoke.mjs "$BASE_URL"
+          fi
+
+  lighthouse:
+    needs: smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Mobile Lighthouse
+        run: |
+          npx --yes @lhci/cli@0.15.1 autorun --config=lighthouserc.json \
+            --collect.url="$BASE_URL/" \
+            --collect.url="$BASE_URL/portfolio/nexusrag/" \
+            --collect.url="$BASE_URL/sources/" \
+            --collect.url="$BASE_URL/credentials/"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: lhci-report
+          retention-days: 14
+          if-no-files-found: ignore

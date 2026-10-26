@@ -1,0 +1,458 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ArchitectureLane from "../../components/ArchitectureLane.astro";
+import FeatureStatusMatrix from "../../components/FeatureStatusMatrix.astro";
+import EvidenceDrawer from "../../components/EvidenceDrawer.astro";
+import EvidenceBadge from "../../components/EvidenceBadge.astro";
+import ExternalLink from "../../components/ExternalLink.astro";
+import { projectBySlug } from "@workspace/proof-atlas-core/data/projects";
+import { softwareSourceCodeLd } from "../../lib/structured-data";
+import { claimById } from "@workspace/proof-atlas-core/data/claims";
+import { runtimeLane, researchLane, featureMatrix, constraints, lifecycle, notEstablished } from "../../lib/case-nexusrag";
+
+const p = projectBySlug("nexusrag")!;
+const sourceCodeLd = softwareSourceCodeLd(p);
+const gate = claimById("nexus-citation-gate")!;
+const fusion = claimById("nexus-fusion")!;
+const sources = [
+  { label: "README — runtime scope and status", href: claimById("nexus-two-lanes")!.sourceUrl! },
+  { label: "Gateway capability report (preview-worker.js:717)", href: claimById("nexus-capabilities")!.sourceUrl! },
+  { label: "Gateway fusion (worker-lifecycle.js:90–111)", href: fusion.sourceUrl! },
+  { label: "Citation gate (answer-evidence.js)", href: gate.sourceUrl! },
+  { label: "Evaluation metrics (backend/evals/metrics.py)", href: claimById("nexus-evals")!.sourceUrl! },
+  { label: "Deployment status", href: claimById("nexus-not-production")!.sourceUrl! },
+];
+---
+
+<BaseLayout
+  title="NexusRAG case study"
+  description="NexusRAG keeps a bounded, tenant-scoped runtime apart from a richer research pipeline: what runs, what is documented and what is not established."
+  ogCard="nexusrag"
+  ogType="article"
+  preloadSerif
+  jsonLd={sourceCodeLd}
+>
+  <header class="case-hero">
+    <div class="container">
+      <p class="eyebrow"><a href="/portfolio/">Portfolio</a> / Flagship / {p.categories.join(" · ")}</p>
+      <h1 class="h2 title">NexusRAG</h1>
+      <p class="lead thesis">
+        A retrieval system is only as trustworthy as its boundaries. NexusRAG keeps a <span class="serif">bounded runtime</span> that cites or abstains, apart from a <span class="serif">research pipeline</span> where richer ideas are tried first.
+      </p>
+      <div class="cluster meta">
+        <EvidenceBadge status="repository_documented" label="Production readiness not claimed" claimId="nexus-not-production" />
+        <span class="chip">Reviewed at {p.repository.commit.slice(0, 7)} · {p.repository.committedOn}</span>
+        <span class="chip">Licence {p.repository.license}</span>
+      </div>
+      <nav class="toc" aria-label="On this page">
+        <ol>
+          <li><a href="#problem">Problem</a></li>
+          <li><a href="#constraints">Constraints</a></li>
+          <li><a href="#runtime">Bounded runtime</a></li>
+          <li><a href="#research">Research pipeline</a></li>
+          <li><a href="#matrix">Feature status</a></li>
+          <li><a href="#retrieval">Retrieval</a></li>
+          <li><a href="#lifecycle">Evidence lifecycle</a></li>
+          <li><a href="#failure">Security and failure</a></li>
+          <li><a href="#limits">Not established</a></li>
+          <li><a href="#sources">Sources</a></li>
+        </ol>
+      </nav>
+    </div>
+  </header>
+
+  <section class="section section--tight proof-trail-band" aria-labelledby="proof-trail">
+    <div class="container">
+      <h2 id="proof-trail" class="eyebrow">Proof trail · one claim, end to end</h2>
+      <ol class="trail">
+        <li><span class="trail-k">Claim</span><span>Answers are grounded in retrieved sources.</span></li>
+        <li><span class="trail-k">Constraint</span><span>An uncited or wrongly cited answer must never be published.</span></li>
+        <li><span class="trail-k">Architecture</span><span>A citation gate sits between generation and the response.</span></li>
+        <li><span class="trail-k">Demonstration</span><span>Every <code>[S#]</code> must point at a retrieved, non-empty source; otherwise the reply becomes an abstention.</span></li>
+        <li><span class="trail-k">Source</span><span><ExternalLink href={gate.sourceUrl!}>answer-evidence.js, lines 1–10</ExternalLink></span></li>
+        <li><span class="trail-k">Limitation</span><span>{gate.limitations![0]}</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="problem" class="section" aria-labelledby="problem-h">
+    <div class="container case-grid">
+      <h2 id="problem-h" class="h3">Problem</h2>
+      <div class="prose">
+        <p>{p.problem}</p>
+        <p>
+          Retrieval-augmented generation makes this possible, but it also makes it easy to over-claim: a feature that works in a local notebook is not the same as a feature running behind a multi-tenant API with real budgets. NexusRAG's repository draws that line itself — its README says the feature inventory "is not a guarantee that every feature is enabled in the deployed gateway" — and this page keeps the same line.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section id="constraints" class="section" aria-labelledby="constraints-h">
+    <div class="container case-grid">
+      <h2 id="constraints-h" class="h3">Constraints</h2>
+      <ol class="constraint-rail">
+        {
+          constraints.map((c) => (
+            <li>
+              <h3 class="h4">{c.title}</h3>
+              <p class="muted">{c.detail}</p>
+              <a class="small target-24" href={`/sources/#${c.claimId}`}>Evidence<span class="visually-hidden"> for {c.title}</span></a>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="lanes-h">
+    <div class="container">
+      <div class="lanes-head">
+        <h2 id="lanes-h" class="h3">Two lanes, deliberately separate</h2>
+        <p class="muted reading">The solid lane is what the deployed gateway is built to run. The dashed lane lives in the Python backend for local and research use. Nothing in the dashed lane should be read as running in production.</p>
+      </div>
+      <div id="runtime" class="lane-block">
+        <ArchitectureLane
+          id="runtime-lane"
+          title="Bounded runtime"
+          subtitle="Cloudflare · Supabase · Qdrant · Gemini · Next.js 16"
+          tone="runtime"
+          status="repository_documented"
+          statusLabel="Preview verified, per repository"
+          claimId="nexus-two-lanes"
+          nodes={runtimeLane}
+        />
+      </div>
+      <div class="lane-gap" aria-hidden="true"><span>not the same deployed system</span></div>
+      <div id="research" class="lane-block">
+        <ArchitectureLane
+          id="research-lane"
+          title="Local / research pipeline"
+          subtitle="FastAPI · Python · LangChain · Sentence Transformers"
+          tone="research"
+          status="repository_documented"
+          statusLabel="Documented, not in gateway"
+          claimId="nexus-research-pipeline"
+          nodes={researchLane}
+        />
+      </div>
+    </div>
+  </section>
+
+  <section id="matrix" class="section" aria-labelledby="matrix-h">
+    <div class="container">
+      <h2 id="matrix-h" class="h3">Feature status</h2>
+      <p class="muted reading matrix-intro">
+        Runtime states come from the gateway's own capability report and settings at commit {p.repository.commit.slice(0, 7)}. "Documented" means the research lane describes or implements it; it was not executed for this review.
+      </p>
+      <FeatureStatusMatrix rows={featureMatrix} caption="NexusRAG feature status by lane" columns={["Bounded runtime", "Research pipeline"]} />
+    </div>
+  </section>
+
+  <section id="retrieval" class="section" aria-labelledby="retrieval-h">
+    <div class="container case-grid">
+      <h2 id="retrieval-h" class="h3">Retrieval architecture</h2>
+      <div class="prose">
+        <p>
+          The gateway ranks candidates from two lists. Qdrant returns dense hits in similarity order. A lexical list scores each stored chunk by <em>term coverage</em> — the share of the question's distinct words (three letters or more) that appear in it. This is not BM25.
+        </p>
+        <p>Each list contributes a reciprocal-rank term, and the two are blended with a workspace weight α (default 0.6):</p>
+        <pre class="formula"><code>score = α · 1/(61 + dense rank) + (1 − α) · (1/(61 + lexical rank) + 0.02 · coverage)</code></pre>
+        <p>
+          Ranks here start at zero, so 61 is the familiar RRF constant k = 60. The weighted blend differs from textbook Reciprocal Rank Fusion, which simply adds the contributions. The repository also contains a pure RRF library, but the gateway does not call it.
+        </p>
+        <div class="cluster">
+          <a class="button button--small" href="/lab/retrieval-fusion/?preset=nexusrag">Compare RRF with this blend in the Lab</a>
+          <a class="button button--ghost button--small" href="/workbench/documents/?sample=retrieval">Inspect the retrieval idea on sample text</a>
+        </div>
+        <EvidenceDrawer claimIds={["nexus-fusion", "nexus-runtime-settings"]} summary="Evidence for the retrieval description" />
+      </div>
+    </div>
+  </section>
+
+  <section id="lifecycle" class="section" aria-labelledby="lifecycle-h">
+    <div class="container case-grid">
+      <h2 id="lifecycle-h" class="h3">Data and evidence lifecycle</h2>
+      <div>
+        <ol class="lifecycle">
+          {
+            lifecycle.map((l, i) => (
+              <li>
+                <span class="mono muted">{String(i + 1).padStart(2, "0")}</span>
+                <span class="lc-step">{l.step}</span>
+                <span class="muted small">{l.detail}</span>
+              </li>
+            ))
+          }
+        </ol>
+        <EvidenceDrawer claimIds={["nexus-data-authority", "nexus-queue", "nexus-findings"]} summary="Evidence for the lifecycle" />
+      </div>
+    </div>
+  </section>
+
+  <section id="failure" class="section" aria-labelledby="failure-h">
+    <div class="container case-grid">
+      <h2 id="failure-h" class="h3">Security and failure semantics</h2>
+      <div class="grid grid--2">
+        <div class="card">
+          <h3 class="h4">Fails closed</h3>
+          <ul class="tight muted">
+            <li>Uncited or invalidly cited model output becomes an abstention.</li>
+            <li>No sources found means no answer, stated as such.</li>
+            <li>Unsupported filters, retention and erasure requests are refused, not approximated.</li>
+            <li>Blocked deletions stay tombstoned; no success receipt is invented.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 class="h4">Boundaries</h3>
+          <ul class="tight muted">
+            <li>Supabase Auth is the only identity authority.</li>
+            <li>Cloudflare is the public security and routing boundary.</li>
+            <li>Vectors are fenced by workspace and version.</li>
+            <li>A user's own Gemini key is encrypted with AES-GCM and never returned to the browser.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="drawer-row">
+        <EvidenceDrawer claimIds={["nexus-citation-gate", "nexus-fail-closed", "nexus-auth", "nexus-byok", "nexus-data-authority"]} summary="Evidence for security and failure behaviour" />
+      </div>
+    </div>
+  </section>
+
+  <section id="limits" class="section" aria-labelledby="limits-h">
+    <div class="container case-grid">
+      <h2 id="limits-h" class="h3">What is not established</h2>
+      <div>
+        <ul class="not-established">
+          {notEstablished.map((n) => <li>{n}</li>)}
+        </ul>
+        <p class="notice small">
+          The previous version of this portfolio linked NexusRAG at a Vercel address. NexusRAG's own documentation says Vercel is not an active deployment path, so no live link is shown until a current address is confirmed.
+        </p>
+        <EvidenceDrawer claimIds={["nexus-not-production", "nexus-evals", "nexus-readme-key"]} summary="Evidence for these limitations" />
+      </div>
+    </div>
+  </section>
+
+  <section id="sources" class="section" aria-labelledby="sources-h">
+    <div class="container case-grid">
+      <h2 id="sources-h" class="h3">Source evidence</h2>
+      <div>
+        <ul class="source-list">
+          {sources.map((s) => <li><ExternalLink href={s.href}>{s.label}</ExternalLink></li>)}
+        </ul>
+        <div class="cluster actions">
+          <ExternalLink href={p.repository.url} class="button">Open the repository</ExternalLink>
+          <a class="button button--ghost" href="/sources/?subject=nexusrag">All NexusRAG evidence</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .case-hero {
+    padding-block: clamp(40px, 5vw + 12px, 96px) clamp(32px, 3vw, 56px);
+  }
+  .case-hero .eyebrow a {
+    color: inherit;
+  }
+  .title {
+    margin-top: var(--space-4);
+  }
+  .thesis {
+    margin-top: var(--space-5);
+    max-width: 58ch;
+    color: var(--ink);
+  }
+  .meta {
+    margin-top: var(--space-5);
+  }
+  .toc {
+    margin-top: var(--space-6);
+  }
+  .toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .toc a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-full);
+    font-size: var(--text-sm);
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .toc a:hover {
+    border-color: var(--ink);
+  }
+  .proof-trail-band {
+    background: var(--surface);
+    border-block: 1px solid var(--line-soft);
+  }
+  .trail {
+    list-style: none;
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+  }
+  @media (min-width: 1024px) {
+    .trail {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+  }
+  .trail li {
+    display: grid;
+    gap: 6px;
+    align-content: start;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+    background: var(--paper);
+    font-size: var(--text-sm);
+  }
+  .trail li:nth-child(5) {
+    background: var(--signal);
+    color: var(--signal-ink);
+    border-color: var(--signal-ink);
+  }
+  .trail li:nth-child(5) :global(a) {
+    color: var(--signal-ink);
+  }
+  .trail li:last-child {
+    border-color: var(--copper);
+    background: var(--copper-soft);
+  }
+  .trail-k {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .constraint-rail {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-4);
+  }
+  .constraint-rail li {
+    display: grid;
+    gap: 4px;
+    padding: var(--space-4) var(--space-5);
+    border-left: 3px solid var(--copper);
+    background: var(--surface);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  }
+  .lanes-head {
+    margin-bottom: var(--space-6);
+  }
+  .lanes-head p {
+    margin-top: var(--space-3);
+  }
+  .lane-block :global(.lane-nodes) {
+    --cols: 6;
+  }
+  .lane-gap {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin: var(--space-4) 0;
+    color: var(--copper-ink);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .lane-gap::before,
+  .lane-gap::after {
+    content: "";
+    flex: 1;
+    border-top: 1.5px dashed var(--copper);
+  }
+  .matrix-intro {
+    margin: var(--space-3) 0 var(--space-5);
+  }
+  .formula {
+    overflow-x: auto;
+    padding: var(--space-4);
+    border: 1px dashed var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    font-size: var(--text-sm);
+  }
+  .lifecycle {
+    list-style: none;
+    margin: 0 0 var(--space-5);
+    padding: 0;
+    display: grid;
+    gap: 2px;
+  }
+  .lifecycle li {
+    display: grid;
+    grid-template-columns: 2.5rem 7rem 1fr;
+    gap: var(--space-3);
+    align-items: baseline;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  @media (max-width: 560px) {
+    .lifecycle li {
+      grid-template-columns: 2.5rem 1fr;
+    }
+    .lifecycle li .small {
+      grid-column: 2;
+    }
+  }
+  .lc-step {
+    font-weight: 700;
+  }
+  .tight {
+    margin: var(--space-3) 0 0;
+    padding-left: 1.1em;
+    display: grid;
+    gap: 6px;
+  }
+  .drawer-row {
+    grid-column: 1 / -1;
+  }
+  @media (min-width: 1024px) {
+    .drawer-row {
+      grid-column: 2;
+    }
+  }
+  .not-established {
+    margin: 0 0 var(--space-5);
+    padding-left: 1.1em;
+    display: grid;
+    gap: 8px;
+  }
+  .not-established li::marker {
+    color: var(--copper);
+  }
+  .notice {
+    margin-bottom: var(--space-5);
+  }
+  .source-list {
+    margin: 0 0 var(--space-5);
+    padding-left: 1.1em;
+    display: grid;
+    gap: 8px;
+  }
+  .actions {
+    gap: var(--space-3);
+  }
+  .prose :global(.evidence-drawer) {
+    margin-top: var(--space-5);
+  }
+  .prose .cluster {
+    margin-top: var(--space-5);
+  }
+</style>

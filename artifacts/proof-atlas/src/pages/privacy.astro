@@ -1,0 +1,95 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
+import ExternalLink from "../components/ExternalLink.astro";
+import { publicProviderSummary } from "@workspace/proof-atlas-core/providers/policies";
+import { profile } from "@workspace/proof-atlas-core/data/profile";
+
+const providers = publicProviderSummary();
+const flows = [
+  { action: "Reading any page", leaves: "Nothing beyond the normal page request.", to: "Vercel (hosting)" },
+  { action: "Repository Evidence Graph", leaves: "The owner/repo name you enter.", to: "This site's API, then GitHub's public API" },
+  { action: "Declared dependencies (optional step)", leaves: "The owner/repo name again.", to: "This site's API, then GitHub (root manifest files only)" },
+  { action: "Package lookup (when you click one)", leaves: "The package name and ecosystem.", to: "This site's API, then npm or PyPI" },
+  { action: "Citation Integrity", leaves: "The DOI or search words you enter.", to: "This site's API, then Crossref (and DataCite as fallback)" },
+  { action: "Document Workbench", leaves: "Nothing. Files and text stay in your browser.", to: "—" },
+  {
+    action: "Ask the Atlas",
+    leaves: "Your question and the public evidence entries retrieved for it.",
+    to: "This site's API, then Google's Gemini API — only when the server has a Gemini key, which /api/status shows",
+  },
+  { action: "Contact form", leaves: "Name, email, subject and message.", to: "This site's API, then Resend (email delivery)" },
+  {
+    action: "Error report (only if an interactive tool crashes)",
+    leaves:
+      "The error message (up to 500 characters), the component stack (up to 3,000 characters), the site release and the page path. The server adds your browser's User-Agent string (up to 500 characters) and removes email addresses and query strings.",
+    to: "This site's API logs",
+  },
+];
+const HOW_REVIEWED: Record<string, string> = {
+  "owner-supplied-research": "Owner-supplied research",
+  "official-docs-excerpt": "Excerpts of official documentation",
+  "implementation-check": "Checked by calling the service",
+};
+---
+
+<BaseLayout title="Privacy" description="What this site collects, what leaves your browser, and which providers are involved.">
+  <PageHero eyebrow="Privacy" title="Plain answers about your data." lede="No accounts, no advertising, no analytics, no fingerprinting and no cookies. Here is exactly what leaves your browser and where it goes." />
+
+  <section class="section">
+    <div class="container stack stack--md">
+      <h2 class="h3">What leaves your browser</h2>
+      <div class="table-wrap">
+        <table class="stack-table">
+          <caption class="visually-hidden">Data that leaves the browser for each feature</caption>
+          <thead><tr><th scope="col">When you use</th><th scope="col">What is sent</th><th scope="col">Where it goes</th></tr></thead>
+          <tbody>
+            {flows.map((f) => <tr><th scope="row">{f.action}</th><td data-label="Sent">{f.leaves}</td><td data-label="To">{f.to}</td></tr>)}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container prose">
+      <h2 class="h3">Retention</h2>
+      <p>This site has no database. The API keeps short-lived caches of public provider responses in memory so repeated lookups do not hit GitHub or Crossref again; they disappear when the server instance restarts. Server request logs record the method, path (without query strings), status and timing, and are kept by the hosting provider under its own policy.</p>
+      <p>Contact messages are delivered by email and not stored by the site. Workbench documents never reach the server. Ask the Atlas questions are sent to Gemini only to produce an answer and are not stored by this site; Google's handling depends on the API tier in use.</p>
+      <p>To limit request rates, the API keeps your IP address (for IPv6, its /64 network) in memory for a few minutes. It is not written to this site's logs and is gone when the server instance restarts.</p>
+      <h2 class="h3">Storage in your browser</h2>
+      <p>Your theme choice is saved in localStorage under <code>pa-theme</code>. Clearing site data removes it. The Repository Evidence Graph counts package lookups in sessionStorage under <code>pa-package-lookups</code>, which the browser clears when the tab closes. Nothing else is stored.</p>
+      <h2 class="h3">External links</h2>
+      <p>Links to GitHub, LinkedIn, Credly, CodeChef, issuer verification pages and project sites open those services, which have their own policies.</p>
+      <h2 class="h3">Questions</h2>
+      <p>Email <a href={`mailto:${profile.email}`}>{profile.email}</a>.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container stack stack--md">
+      <h2 class="h3">Provider register</h2>
+      <p class="muted reading">Every outside service the API may call, whether it is enabled, and when its terms were last reviewed. Disabled providers are never called.</p>
+      <div class="table-wrap">
+        <table>
+          <caption class="visually-hidden">External providers and their status</caption>
+          <thead><tr><th scope="col">Provider</th><th scope="col">Purpose</th><th scope="col">Status</th><th scope="col">Reviewed</th><th scope="col">How reviewed</th></tr></thead>
+          <tbody>
+            {
+              providers.map((p) => (
+                <tr>
+                  <th scope="row"><ExternalLink href={p.docsUrl}>{p.id}</ExternalLink></th>
+                  <td>{p.purpose}</td>
+                  <td><span class="badge" data-status={p.enabled ? "ok" : "neutral"}>{p.enabled ? "Enabled" : "Disabled"}</span></td>
+                  <td class="mono">{p.verifiedAt}</td>
+                  <td>{HOW_REVIEWED[p.verification] ?? p.verification}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="small muted">Gemini runs only when the server has an API key; contact delivery (Resend) only when the server has a key and a recipient. “Enabled” here means allowed by policy; <code>/api/status</code> shows what the running server can actually use.</p>
+    </div>
+  </section>
+</BaseLayout>

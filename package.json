@@ -1,25 +1,32 @@
 {
-  "name": "anupam-roy-intelligence-systems",
+  "name": "proof-atlas",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "packageManager": "pnpm@10.34.5",
   "engines": {
-    "node": ">=22.12.0 <25",
+    "node": ">=22.22.0 <25",
     "pnpm": ">=10.0.0 <11"
   },
   "scripts": {
     "preinstall": "node scripts/ensure-pnpm.cjs",
-    "dev": "pnpm --parallel --filter @workspace/api-server --filter @workspace/anupam-intelligence-systems run dev",
+    "dev": "pnpm --parallel --filter @workspace/api-server --filter @workspace/proof-atlas run dev",
     "check": "pnpm run verify:source && pnpm run typecheck && pnpm test",
-    "build": "pnpm run check && pnpm -r --if-present run build",
-    "start": "pnpm --filter @workspace/api-server run start",
+    "build": "pnpm run check && pnpm -r --if-present run build && pnpm run verify:dist",
+    "start": "node scripts/serve-local.mjs",
+    "lint": "eslint . --max-warnings 0",
     "test": "pnpm -r --filter \"./artifacts/**\" --if-present run test",
+    "test:e2e": "pnpm --filter @workspace/proof-atlas run test:e2e",
+    "test:a11y": "pnpm --filter @workspace/proof-atlas exec playwright test tests/e2e/a11y.spec.ts",
     "typecheck": "pnpm -r --filter \"./artifacts/**\" --if-present run typecheck",
+    "validate:providers": "pnpm --filter @workspace/proof-atlas-core exec vitest run src/providers",
     "verify:source": "node scripts/verify-portfolio-source.mjs",
+    "verify:dist": "node scripts/verify-dist.mjs",
     "audit:prod": "pnpm audit --prod",
-    "deploy:check": "pnpm run build && pnpm run audit:prod"
+    "smoke": "node scripts/smoke.mjs",
+    "verify:production": "node scripts/smoke.mjs https://anupam-roy.vercel.app",
+    "deploy:check": "pnpm run build && pnpm run audit:prod && pnpm run test:e2e"
   },
   "knip": {
     "ignore": [
@@ -27,7 +34,15 @@
     ]
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@typescript-eslint/parser": "8.72.0",
+    "eslint": "10.13.0",
+    "eslint-plugin-astro": "3.2.1",
+    "eslint-plugin-jsx-a11y-x": "0.2.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.13.0",
     "typescript": "~5.9.2",
+    "typescript-eslint": "8.72.0",
     "vitest": "^3.2.4"
   }
 }

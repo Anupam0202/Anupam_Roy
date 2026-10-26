@@ -1,0 +1,413 @@
+---
+import { claimShortTitle } from "@workspace/proof-atlas-core/data/claims";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ArchitectureLane from "../../components/ArchitectureLane.astro";
+import EvidenceDrawer from "../../components/EvidenceDrawer.astro";
+import EvidenceBadge from "../../components/EvidenceBadge.astro";
+import ExternalLink from "../../components/ExternalLink.astro";
+import PlantPalLayersMini from "../../components/diagrams/PlantPalLayersMini.astro";
+import { projectBySlug } from "@workspace/proof-atlas-core/data/projects";
+import { softwareSourceCodeLd } from "../../lib/structured-data";
+import { providerRows, interpretationBoundary, syntheticProfiles } from "../../lib/case-plantpal";
+
+const p = projectBySlug("plantpal")!;
+const sourceCodeLd = softwareSourceCodeLd(p);
+const NOT_STATED = "Not stated in the repository";
+const featureRows = [
+  { feature: "Multi-source environmental profile", status: "repository_documented" as const, label: "Implemented (inspected)", claimId: "plantpal-sources" },
+  { feature: "Browser cache with freshness classes", status: "repository_documented" as const, label: "Implemented: 15 min / 24 h", claimId: "plantpal-cache" },
+  { feature: "30-day cache for soil and elevation", status: "unverified" as const, label: "README only — inactive in code", claimId: "plantpal-cache" },
+  { feature: "Carbon dashboard", status: "repository_documented" as const, label: "Estimate from fixed table", claimId: "plantpal-carbon" },
+  { feature: "Native-species biodiversity", status: "unverified" as const, label: "Occurrence sample, no native filter", claimId: "plantpal-biodiversity" },
+  { feature: "Climate trend forecaster", status: "repository_documented" as const, label: "One CMIP6 model projection", claimId: "plantpal-climate" },
+  { feature: "Plant Doctor diagnosis", status: "repository_documented" as const, label: "Model interpretation, not diagnosis", claimId: "plantpal-doctor" },
+  { feature: "Server-side key protection", status: "unavailable" as const, label: "Not present — key in client bundle", claimId: "plantpal-key" },
+];
+const architecture = [
+  { name: "Location", detail: "Browser GPS, IP lookup (ipapi.co) or city search." },
+  { name: "Parallel provider calls", detail: "Open-Meteo, SoilGrids, GBIF, Sunrise-Sunset, Open-Elevation — straight from the browser." },
+  { name: "Environmental profile", detail: "One object per location, cached in localStorage by freshness class." },
+  { name: "Preferences", detail: "Sunlight, watering, size and goals entered by the user." },
+  { name: "Gemini prompt", detail: "Profile and preferences combined into a prompt from the browser." },
+  { name: "Suggestions", detail: "Plants and actions to consider — model interpretation." },
+];
+---
+
+<BaseLayout
+  title="PlantPal case study"
+  description="PlantPal turns public weather, soil, biodiversity and climate data into garden advice. Each source is shown with its freshness and uncertainty."
+  ogCard="plantpal"
+  ogType="article"
+  preloadSerif
+  jsonLd={sourceCodeLd}
+>
+  <header class="case-hero">
+    <div class="container hero-grid">
+      <div>
+        <p class="eyebrow"><a href="/portfolio/">Portfolio</a> / Flagship / {p.categories.join(" · ")}</p>
+        <h1 class="h2 title">PlantPal</h1>
+        <p class="lead thesis">
+          Many public signals, one garden. The engineering problem is not calling the APIs — it is keeping each signal's <span class="serif">resolution, freshness and uncertainty</span> visible when a model turns them into advice.
+        </p>
+        <div class="cluster meta">
+          <EvidenceBadge status="repository_documented" label="Source inspected" claimId="plantpal-sources" />
+          <span class="chip">Reviewed at {p.repository.commit.slice(0, 7)} · {p.repository.committedOn}</span>
+          <span class="chip">No licence file</span>
+        </div>
+      </div>
+      <div class="hero-art"><PlantPalLayersMini /></div>
+    </div>
+  </header>
+
+  <section class="section" aria-labelledby="problem-h">
+    <div class="container case-grid">
+      <h2 id="problem-h" class="h3">Intended user problem</h2>
+      <div class="prose">
+        <p>{p.problem}</p>
+        <p>
+          A gardener wants to know what will grow well where they are. The answer depends on climate, soil chemistry, air quality, sunlight and what already lives nearby — information that exists in public datasets, but scattered, at different scales and updated on different clocks.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="signals-h">
+    <div class="container">
+      <h2 id="signals-h" class="h3">Environmental signals: provider, freshness, resolution</h2>
+      <p class="muted reading intro">What PlantPal's code requests, how long the app keeps it, and the spatial resolution where the repository states one. Provider terms were not reviewed for this page; Open-Meteo's free hosted tier is non-commercial.</p>
+      <div class="table-wrap">
+        <table class="stack-table">
+          <caption class="visually-hidden">PlantPal data providers with freshness and resolution</caption>
+          <thead>
+            <tr><th scope="col">Signal</th><th scope="col">Provider</th><th scope="col">What is requested</th><th scope="col">Freshness in the app</th><th scope="col">Resolution</th></tr>
+          </thead>
+          <tbody>
+            {
+              providerRows.map((r) => (
+                <tr>
+                  <th scope="row">{r.signal}</th>
+                  <td data-label="Provider">{r.provider}</td>
+                  <td data-label="Requested">{r.request}</td>
+                  <td data-label="Freshness">{r.freshness}</td>
+                  <td data-label="Resolution">
+                    {r.resolution === NOT_STATED ? (
+                      <>
+                        <span aria-hidden="true">—</span>
+                        <span class="visually-hidden">{NOT_STATED}</span>
+                      </>
+                    ) : (
+                      r.resolution
+                    )}
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="hint">— {NOT_STATED}.</p>
+      <div class="drawer"><EvidenceDrawer claimIds={["plantpal-sources", "plantpal-cache", "plantpal-biodiversity", "plantpal-climate"]} summary="Evidence for the provider table" /></div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="arch-h">
+    <div class="container">
+      <h2 id="arch-h" class="h3 arch-title">Normalised source architecture</h2>
+      <ArchitectureLane
+        id="plantpal-arch"
+        title="From location to suggestions"
+        subtitle="React 19 · Vite · client-side only"
+        tone="neutral"
+        status="repository_documented"
+        statusLabel="Inspected at 99071d4"
+        claimId="plantpal-sources"
+        nodes={architecture}
+      />
+      <p class="notice small arch-note">
+        Everything runs in the browser, including the Gemini call. A key supplied at build time is embedded in the JavaScript bundle, and a user's own key is kept in localStorage. That is why this page does not link a live deployment.
+        <a class="target-24" href="/sources/#plantpal-key">Evidence<span class="visually-hidden"> for the key handling</span></a>
+      </p>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="uncertainty-h">
+    <div class="container case-grid">
+      <h2 id="uncertainty-h" class="h3">Uncertainty</h2>
+      <div class="prose">
+        <p>Each signal fails differently. Forecast temperature is tight over a few days; air quality is modelled on a grid; soil properties are a 250-metre prediction that a single yard can contradict; occurrence counts measure reporting effort as much as life; and a single climate model is one possible future, not a forecast.</p>
+        <p>The explorer below makes that visible with invented sites. Its values are synthetic so no real location, licence or quota is involved.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="ai-h">
+    <div class="container case-grid">
+      <h2 id="ai-h" class="h3">AI interpretation boundary</h2>
+      <div class="grid grid--2">
+        <div class="card">
+          <h3 class="h4">The model may</h3>
+          <ul class="tight">{interpretationBoundary.may.map((m) => <li>{m}</li>)}</ul>
+        </div>
+        <div class="card boundary-no">
+          <h3 class="h4">The product must not claim</h3>
+          <ul class="tight">{interpretationBoundary.mustNot.map((m) => <li>{m}</li>)}</ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section explorer-band" aria-labelledby="explorer-h">
+    <div class="container">
+      <p class="eyebrow">Synthetic data · not real locations</p>
+      <h2 id="explorer-h" class="h3">Signal explorer</h2>
+      <div class="explorer" data-tabs data-tabs-param="site">
+        <div role="tablist" aria-label="Synthetic sites" class="segmented" hidden>
+          {
+            syntheticProfiles.map((s, i) => (
+              <button role="tab" type="button" id={`tab-${s.id}`} aria-controls={`panel-${s.id}`} aria-selected={i === 0 ? "true" : "false"} tabindex={i === 0 ? 0 : -1} data-value={s.id}>
+                {s.label.replace(/^Synthetic site \w — /, "")}
+              </button>
+            ))
+          }
+        </div>
+        {
+          syntheticProfiles.map((s) => (
+            <section role="tabpanel" id={`panel-${s.id}`} aria-labelledby={`tab-${s.id}`} class="panel" tabindex="0">
+              <h3 class="h4">{s.label}</h3>
+              <p class="muted small">{s.note}</p>
+              <ul class="signals">
+                {s.signals.map((sig) => (
+                  <li class="signal">
+                    <div class="signal-head">
+                      <span class="signal-name">{sig.name}</span>
+                      <span class="signal-value">{sig.value}</span>
+                    </div>
+                    <div class={`band band--${sig.uncertainty}`} aria-hidden="true">
+                      <span />
+                    </div>
+                    <p class="small muted">
+                      <span class="badge" data-status={sig.uncertainty === "low" ? "ok" : sig.uncertainty === "medium" ? "neutral" : "warning"}>
+                        {sig.uncertainty} uncertainty
+                      </span>{" "}
+                      {sig.band[0] !== sig.band[1] ? `Plausible range ${sig.band[0]}–${sig.band[1]}. ` : "Count only; no range applies. "}
+                      {sig.why}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section id="earth-signals" class="section" aria-labelledby="earth-h">
+    <div class="container case-grid">
+      <h2 id="earth-h" class="h3">Earth Signals exhibit</h2>
+      <p class="muted prose">
+        A live earth-data exhibit is deliberately not included. Open-Meteo's free hosted tier is non-commercial and is disabled in this site's provider policy, and adding a separate live feed would not tell you more about PlantPal's engineering than the synthetic explorer above.
+      </p>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="status-h">
+    <div class="container">
+      <h2 id="status-h" class="h3">Feature and source status</h2>
+      <div class="table-wrap status-table">
+        <table>
+          <caption class="visually-hidden">PlantPal feature status</caption>
+          <thead>
+            <tr><th scope="col">Feature (as named in the README)</th><th scope="col">What the code shows</th><th scope="col">Evidence</th></tr>
+          </thead>
+          <tbody>
+            {
+              featureRows.map((r) => (
+                <tr>
+                  <th scope="row">{r.feature}</th>
+                  <td><EvidenceBadge status={r.status} label={r.label} /></td>
+                  <td><a href={`/sources/#${r.claimId}`}>{claimShortTitle(r.claimId)}</a></td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="drawer"><EvidenceDrawer claimIds={["plantpal-carbon", "plantpal-key"]} summary="Evidence for carbon and key handling" /></div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="repo-h">
+    <div class="container case-grid">
+      <h2 id="repo-h" class="h3">Repository</h2>
+      <div class="stack stack--sm">
+        <p class="muted">PlantPal is linked by its repository only: the live app is not linked while its client-side key issue stands.</p>
+        <div class="cluster">
+          <ExternalLink href={p.repository.url} class="button">Open the repository</ExternalLink>
+          <a class="button button--ghost" href="/sources/?subject=plantpal">All PlantPal evidence</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="limits-h">
+    <div class="container case-grid">
+      <h2 id="limits-h" class="h3">Limitations</h2>
+      <div>
+        <ul class="not-established">
+          <li>The README describes "exact CO₂ sequestration"; the code uses a fixed per-category estimate.</li>
+          <li>"Native species within 10 km" is a sample of occurrence records in a ±0.1° box with no native filter.</li>
+          <li>Climate figures come from a single model and do not select an emissions scenario.</li>
+          <li>The repository has no licence file, so reuse rights are not granted.</li>
+          <li>The live app was not checked; it is not linked while the client-side key issue stands.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  import { initTabs } from "../../scripts/tabs";
+  initTabs();
+</script>
+
+<style>
+  .arch-title {
+    margin-bottom: var(--space-5);
+  }
+  .case-hero {
+    padding-block: clamp(40px, 5vw + 12px, 96px) clamp(32px, 3vw, 56px);
+  }
+  .case-hero .eyebrow a {
+    color: inherit;
+  }
+  .hero-grid {
+    display: grid;
+    gap: var(--space-6);
+    align-items: center;
+  }
+  @media (min-width: 1024px) {
+    .hero-grid {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    }
+  }
+  .hero-art {
+    padding: var(--space-5);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+  }
+  .title {
+    margin-top: var(--space-4);
+  }
+  .thesis {
+    margin-top: var(--space-5);
+    color: var(--ink);
+  }
+  .meta {
+    margin-top: var(--space-5);
+  }
+  .intro {
+    margin: var(--space-3) 0 var(--space-5);
+  }
+  .drawer {
+    margin-top: var(--space-5);
+  }
+  .arch-note {
+    margin-top: var(--space-5);
+  }
+  .explorer-band {
+    background: var(--surface);
+  }
+  .explorer {
+    margin-top: var(--space-5);
+  }
+  .explorer [role="tablist"] {
+    margin-bottom: var(--space-5);
+  }
+  .panel {
+    padding: var(--space-5);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--paper);
+  }
+  .explorer:not(.tabs-ready) .panel + .panel {
+    margin-top: var(--space-5);
+  }
+  .signals {
+    list-style: none;
+    margin: var(--space-5) 0 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-5);
+  }
+  @media (min-width: 900px) {
+    .signals {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .signal-head {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    align-items: baseline;
+  }
+  .signal-name {
+    font-weight: 700;
+  }
+  .signal-value {
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+  }
+  .band {
+    position: relative;
+    height: 10px;
+    margin: 10px 0;
+    border-radius: var(--radius-full);
+    background: var(--line-soft);
+  }
+  .band span {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-radius: inherit;
+  }
+  .band--low span {
+    left: 44%;
+    right: 44%;
+    background: var(--tech);
+  }
+  .band--medium span {
+    left: 30%;
+    right: 30%;
+    background: var(--tech);
+    opacity: 0.7;
+  }
+  .band--high span {
+    left: 12%;
+    right: 12%;
+    background: repeating-linear-gradient(90deg, var(--copper) 0 6px, transparent 6px 10px);
+  }
+  .tight {
+    margin: var(--space-3) 0 0;
+    padding-left: 1.1em;
+    display: grid;
+    gap: 6px;
+  }
+  .boundary-no {
+    border-color: var(--copper);
+    background: var(--copper-soft);
+  }
+  .status-table td {
+    vertical-align: middle;
+  }
+  .not-established {
+    margin: 0 0 var(--space-5);
+    padding-left: 1.1em;
+    display: grid;
+    gap: 8px;
+  }
+  .not-established li::marker {
+    color: var(--copper);
+  }
+</style>

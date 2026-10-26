@@ -1,0 +1,29 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PageHero from "../../components/PageHero.astro";
+import DocumentWorkbench from "../../islands/DocumentWorkbench";
+---
+
+<BaseLayout title="Local Document Evidence" description="Search your own text files in the browser with BM25, exact phrases and rank fusion, then export an evidence packet. Nothing is uploaded.">
+  <PageHero eyebrow="Workbench / documents" title="Local Document Evidence" lede="Find the exact passages that answer a question, with their line numbers, and export them as an evidence packet. Everything happens in this browser tab." />
+  <section class="section section--tight">
+    <div class="container">
+      <DocumentWorkbench client:load />
+      <noscript><p class="notice">This tool needs JavaScript. The rest of the site works without it.</p></noscript>
+      <details class="disclosure about-tool">
+        <summary>How the ranking works</summary>
+        <div class="disclosure-body prose">
+          <p>Text is split into passages of about 900 characters on line boundaries. Each passage is scored with Okapi BM25 (k1 = 1.2, b = 0.75), which rewards rare query words that appear in it. Term coverage is the share of your query's distinct words the passage contains.</p>
+          <p>In the default mode the two rankings are merged with Reciprocal Rank Fusion (k = 60) — the same idea you can step through in the <a href="/lab/retrieval-fusion/">Lab</a>. Quoted queries return only passages containing the exact phrase.</p>
+          <p>PDF and Word extraction, OCR and archives are not supported in this version; paste their text instead.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .about-tool {
+    margin-top: var(--space-7);
+  }
+</style>

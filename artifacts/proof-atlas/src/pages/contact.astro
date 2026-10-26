@@ -1,0 +1,210 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
+import { profile } from "@workspace/proof-atlas-core/data/profile";
+---
+
+<BaseLayout title="Contact" description="Contact Anupam Roy about AI/ML, retrieval systems, backend engineering or cloud AI roles.">
+  <PageHero eyebrow="Contact" title="Let's make a difficult problem understandable." lede="For roles, architecture conversations or collaboration. Email works best; the form sends the same message through the site's server.">
+    <p class="direct">
+      <a class="button button--signal" href={`mailto:${profile.email}?subject=Hello%20Anupam`}>Email {profile.email}</a>
+    </p>
+  </PageHero>
+
+  <section class="section" aria-labelledby="form-h">
+    <div class="container form-grid">
+      <div>
+        <h2 id="form-h" class="h3">Send a message</h2>
+        <p class="muted small explainer">
+          Your name, email address, subject and message are sent to this site's API and delivered to Anupam by email through Resend. Nothing is stored by this site. Messages are rate-limited to reduce spam.
+        </p>
+      </div>
+      <form class="contact-form stack" data-contact-form novalidate hidden>
+        <div class="field">
+          <label for="c-name">Name</label>
+          <input id="c-name" name="name" class="input" autocomplete="name" maxlength="120" required aria-describedby="c-name-error" />
+          <p id="c-name-error" class="error" data-error-for="name" hidden></p>
+        </div>
+        <div class="field">
+          <label for="c-email">Email</label>
+          <input id="c-email" name="email" type="email" class="input" autocomplete="email" maxlength="180" required aria-describedby="c-email-error" />
+          <p id="c-email-error" class="error" data-error-for="email" hidden></p>
+        </div>
+        <div class="field">
+          <label for="c-subject">Subject</label>
+          <input id="c-subject" name="subject" class="input" maxlength="160" required aria-describedby="c-subject-error" />
+          <p id="c-subject-error" class="error" data-error-for="subject" hidden></p>
+        </div>
+        <div class="field">
+          <label for="c-message">Message</label>
+          <textarea id="c-message" name="message" class="textarea" maxlength="5000" required aria-describedby="c-message-hint c-message-error"></textarea>
+          <p id="c-message-hint" class="hint">At least 20 characters, up to 5,000. <span data-counter aria-live="polite">0 / 5,000</span></p>
+          <p id="c-message-error" class="error" data-error-for="message" hidden></p>
+        </div>
+        <div class="trap" aria-hidden="true">
+          <label for="c-company">Company</label>
+          <input id="c-company" name="company" tabindex="-1" autocomplete="off" />
+        </div>
+        <div class="cluster">
+          <button class="button" type="submit" data-submit>Send message</button>
+        </div>
+        <p class="form-status small" role="status" aria-live="polite" tabindex="-1" data-status hidden></p>
+      </form>
+      <p class="notice" data-contact-unavailable hidden>
+        The form is not available right now. Please email <a href={`mailto:${profile.email}`}>{profile.email}</a> directly.
+      </p>
+      <noscript>
+        <p class="notice">The form needs JavaScript. Please email <a href={`mailto:${profile.email}`}>{profile.email}</a> directly.</p>
+      </noscript>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  import { profile } from "@workspace/proof-atlas-core/data/profile";
+
+  const MAX = 5_000;
+  const form = document.querySelector<HTMLFormElement>("[data-contact-form]");
+  const unavailable = document.querySelector<HTMLElement>("[data-contact-unavailable]");
+
+  /** Shows the form only when the server can deliver messages; otherwise the email link. */
+  async function reveal() {
+    let configured = true;
+    try {
+      const response = await fetch("/api/status", { headers: { Accept: "application/json" } });
+      if (response.ok) configured = (await response.json())?.contact?.configured !== false;
+    } catch {
+      /* status unknown: offer the form; sending explains any failure */
+    }
+    if (configured && form) form.hidden = false;
+    else if (unavailable) unavailable.hidden = false;
+  }
+
+  if (form) {
+    void reveal();
+    const status = form.querySelector<HTMLElement>("[data-status]")!;
+    const submit = form.querySelector<HTMLButtonElement>("[data-submit]")!;
+    const counter = form.querySelector<HTMLElement>("[data-counter]")!;
+    const message = form.elements.namedItem("message") as HTMLTextAreaElement;
+    const fields = ["name", "email", "subject", "message"] as const;
+    const value = (n: string) => (form.elements.namedItem(n) as HTMLInputElement).value.trim();
+    const count = () => {
+      const n = message.value.length;
+      counter.textContent = `${n.toLocaleString("en")} / 5,000${n >= MAX ? " — limit reached" : ""}`;
+    };
+    message.addEventListener("input", count);
+
+    /** Writes the outcome; every failure ends with a working email link. */
+    const report = (tone: "success" | "error", text: string) => {
+      status.replaceChildren(text);
+      if (tone === "error") {
+        const link = document.createElement("a");
+        link.href = `mailto:${profile.email}`;
+        link.textContent = profile.email;
+        status.append(" You can also email ", link, " directly.");
+      }
+      status.dataset.tone = tone;
+      status.hidden = false;
+      status.focus();
+    };
+    const showError = (name: string, text: string) => {
+      const el = form.querySelector<HTMLElement>(`[data-error-for="${name}"]`)!;
+      const input = form.elements.namedItem(name) as HTMLInputElement;
+      el.textContent = text;
+      el.hidden = !text;
+      input.setAttribute("aria-invalid", text ? "true" : "false");
+    };
+    const validate = () => {
+      const errors: Record<string, string> = {
+        name: value("name") ? "" : "Enter your name.",
+        email: !value("email") ? "Enter your email address." : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value("email")) ? "" : "Enter a valid email address, like name@example.com.",
+        subject: value("subject") ? "" : "Enter a subject.",
+        message: value("message").length >= 20 ? "" : "Write at least 20 characters.",
+      };
+      fields.forEach((f) => showError(f, errors[f]));
+      const first = fields.find((f) => errors[f]);
+      if (first) (form.elements.namedItem(first) as HTMLElement).focus();
+      return !first;
+    };
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      status.hidden = true;
+      if (!validate()) return;
+      submit.disabled = true;
+      submit.textContent = "Sending…";
+      try {
+        let response: Response;
+        try {
+          response = await fetch("/api/contact", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...Object.fromEntries(fields.map((f) => [f, value(f)])), company: value("company") }),
+          });
+        } catch {
+          report("error", "The message could not be sent because the connection failed.");
+          return;
+        }
+        const payload = (await response.json().catch(() => ({}))) as { error?: string };
+        if (response.ok) {
+          form.reset();
+          count();
+          report("success", "Sent. Thank you — Anupam will reply by email.");
+        } else if (response.status === 429) report("error", "Too many messages were sent from this connection. Please wait a few minutes.");
+        else report("error", payload.error ?? "The message could not be sent.");
+      } finally {
+        submit.disabled = false;
+        submit.textContent = "Send message";
+      }
+    });
+  }
+</script>
+
+<style>
+  .direct {
+    margin-top: var(--space-6);
+  }
+  .form-grid {
+    display: grid;
+    gap: var(--space-6);
+  }
+  @media (min-width: 1024px) {
+    .form-grid {
+      grid-template-columns: minmax(0, 0.4fr) minmax(0, 0.6fr);
+      gap: var(--space-8);
+    }
+  }
+  .explainer {
+    margin-top: var(--space-3);
+    max-width: 44ch;
+  }
+  .form-status {
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+  }
+  .form-status:focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+  .form-status[data-tone="success"] {
+    border-color: var(--status-verified);
+    background: var(--status-verified-bg);
+    color: var(--ink);
+  }
+  .form-status[data-tone="error"] {
+    border-color: var(--danger);
+    background: var(--danger-soft);
+    color: var(--ink);
+  }
+  .contact-form {
+    --stack: var(--space-5);
+    max-width: 640px;
+  }
+  .trap {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+</style>

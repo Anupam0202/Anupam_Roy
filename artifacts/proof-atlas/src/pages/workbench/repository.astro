@@ -1,0 +1,29 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PageHero from "../../components/PageHero.astro";
+import RepositoryAnalyzer from "../../islands/RepositoryAnalyzer";
+---
+
+<BaseLayout title="Repository Evidence Graph" description="Map a public GitHub repository's documentation, releases, manifests, languages, licence and declared dependencies, with an honest coverage report.">
+  <PageHero eyebrow="Workbench / repository" title="Repository Evidence Graph" lede="Public evidence about a repository, organised so you can see what is there — and what was never inspected. It does not judge security, quality or health." />
+  <section class="section section--tight">
+    <div class="container">
+      <RepositoryAnalyzer client:load />
+      <noscript><p class="notice">This tool needs JavaScript. The rest of the site works without it.</p></noscript>
+      <details class="disclosure about-tool">
+        <summary>How it works and what it does not do</summary>
+        <div class="disclosure-body prose">
+          <p>The site's API makes at most five requests to GitHub's public REST API: repository metadata, README, latest releases, languages and the root file list. Responses are cached for 10 minutes; after that they are revalidated with ETags, so unchanged data is not downloaded again.</p>
+          <p>Declared dependencies are an optional second step. It reads only <code>package.json</code>, <code>pyproject.toml</code> and <code>requirements.txt</code> at the repository root (one request each), and contacts npm or PyPI only for a package you pick, fetching that package's latest version, licence and deprecation status.</p>
+          <p>It does not crawl directories, read private repositories, fetch arbitrary URLs, look up vulnerabilities or produce a score. Declared version ranges are not installed versions, so vulnerability analysis is shown as "not inspected" on purpose.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .about-tool {
+    margin-top: var(--space-7);
+  }
+</style>

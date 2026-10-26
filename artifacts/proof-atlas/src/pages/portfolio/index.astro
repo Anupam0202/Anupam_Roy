@@ -1,0 +1,267 @@
+---
+import { claimById, claimShortTitle } from "@workspace/proof-atlas-core/data/claims";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PageHero from "../../components/PageHero.astro";
+import ProjectPlate from "../../components/ProjectPlate.astro";
+import EvidenceDrawer from "../../components/EvidenceDrawer.astro";
+import NexusLanesMini from "../../components/diagrams/NexusLanesMini.astro";
+import PlantPalLayersMini from "../../components/diagrams/PlantPalLayersMini.astro";
+import { projects, PROJECT_CATEGORIES, projectBySlug } from "@workspace/proof-atlas-core/data/projects";
+
+const nexus = projectBySlug("nexusrag")!;
+const plant = projectBySlug("plantpal")!;
+const capabilities = [
+  { capability: "Grounded answers with citations", projects: ["nexusrag", "rag", "contextual-rag-chatbot"], evidence: "nexus-citation-gate" },
+  { capability: "Hybrid lexical + dense retrieval", projects: ["nexusrag", "rag", "contextual-rag-chatbot"], evidence: "nexus-fusion" },
+  { capability: "Retrieval evaluation", projects: ["nexusrag"], evidence: "nexus-evals" },
+  { capability: "Tenant-scoped cloud runtime", projects: ["nexusrag"], evidence: "nexus-two-lanes" },
+  { capability: "Agents held to typed tools and human approval", projects: ["food-bank-recall-closure-agent", "cutline"], evidence: "foodbank-readme" },
+  { capability: "Review bound to the exact revision approved", projects: ["cutline", "recordcheck"], evidence: "cutline-fingerprints" },
+  { capability: "Deterministic matching with human-reviewed exceptions", projects: ["food-bank-recall-closure-agent", "pantryproof"], evidence: "foodbank-matching" },
+  { capability: "AI agent red-teaming and guardrails", projects: ["boxshield-arena"], evidence: "boxshield-readme" },
+  { capability: "Concurrency debugging with verified repair", projects: ["raceproof"], evidence: "raceproof-readme" },
+  { capability: "Explainable risk scoring", projects: ["mavunoguard-ai"], evidence: "mavunoguard-risk" },
+  { capability: "Cost-bounded model use", projects: ["ahawin"], evidence: "ahawin-readme" },
+  { capability: "Multi-source public data integration", projects: ["plantpal"], evidence: "plantpal-sources" },
+  { capability: "Photo analysis with a multimodal model", projects: ["plantpal", "mavunoguard-ai"], evidence: "mavunoguard-readme" },
+  { capability: "Computer vision (object detection)", projects: ["handwritten-chemical-compound-detection"], evidence: "chem-readme" },
+  {
+    capability: "Frontend engineering",
+    projects: ["plantpal", "ahawin", "pantryproof", "recordcheck", "my-portfolio", "anupam-portfolio", "real-estate", "modern-ui-ux-gpt3"],
+    evidence: "archive-readmes",
+  },
+];// A mistyped slug or evidence id fails the build rather than showing raw text.
+for (const c of capabilities) {
+  for (const slug of c.projects) if (!projectBySlug(slug)) throw new Error(`Capability map: unknown project "${slug}"`);
+  if (!claimById(c.evidence)) throw new Error(`Capability map: unknown evidence "${c.evidence}"`);
+}
+const nameOf = (slug: string) => projectBySlug(slug)!.name;
+---
+
+<BaseLayout title="Portfolio" description={`${projects.length} projects with inspectable architecture, engineering evidence and limitations, led by NexusRAG and PlantPal.`}>
+  <PageHero eyebrow="Portfolio / systems & evidence" title="Work worth inspecting." lede="Two flagship systems lead, followed by agentic and evidence-review systems, retrieval experiments, evaluation and computer-vision work, and earlier frontend projects. Every entry links to the repository as it was at the commit that was reviewed." />
+
+  <section class="section section--tight" aria-labelledby="flagships">
+    <div class="container">
+      <h2 id="flagships" class="visually-hidden">Flagship systems</h2>
+      <div class="grid grid--2">
+        <article class="card flagship">
+          <div class="art"><NexusLanesMini /></div>
+          <p class="eyebrow">Flagship · {nexus.categories.join(" · ")}</p>
+          <h3 class="h3"><a class="card-link" href="/portfolio/nexusrag/">NexusRAG</a></h3>
+          <p class="muted">{nexus.oneLiner}</p>
+        </article>
+        <article class="card flagship">
+          <div class="art"><PlantPalLayersMini /></div>
+          <p class="eyebrow">Flagship · {plant.categories.join(" · ")}</p>
+          <h3 class="h3"><a class="card-link" href="/portfolio/plantpal/">PlantPal</a></h3>
+          <p class="muted">{plant.oneLiner}</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="all-projects">
+    <div class="container">
+      <div class="index-head">
+        <h2 id="all-projects" class="h3">All projects</h2>
+        <form class="controls" data-controls hidden role="search" aria-label="Filter projects">
+          <div class="field search">
+            <label for="project-search">Search</label>
+            <input id="project-search" class="input" type="search" name="q" autocomplete="off" placeholder="Name, technology, idea…" />
+          </div>
+          <fieldset class="filter">
+            <legend class="label">Category</legend>
+            <div class="segmented" data-category-group>
+              <button type="button" data-category="" aria-pressed="true">All</button>
+              {PROJECT_CATEGORIES.map((c) => <button type="button" data-category={c} aria-pressed="false">{c}</button>)}
+            </div>
+          </fieldset>
+          <fieldset class="filter">
+            <legend class="label">View</legend>
+            <div class="segmented">
+              <button type="button" data-view="grid" aria-pressed="true">Grid</button>
+              <button type="button" data-view="list" aria-pressed="false">List</button>
+            </div>
+          </fieldset>
+        </form>
+      </div>
+      <p class="results small muted" aria-live="polite" data-results>{projects.length} projects</p>
+      <div class="grid grid--3 project-index" data-index data-view="grid">
+        {projects.map((p) => <ProjectPlate project={p} />)}
+      </div>
+      <p class="hint site-legend">* Project-site links come from the owner's previous portfolio or the repository README; their availability has not been checked.</p>
+      <div class="index-drawer">
+        <EvidenceDrawer claimIds={[...new Set(projects.map((p) => p.claimIds[0]))]} summary="How each project was inspected" />
+      </div>
+      <p class="empty" data-empty hidden>
+        No projects match. <button type="button" class="button button--ghost button--small" data-reset>Reset filters</button>
+      </p>
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="capability-map">
+    <div class="container">
+      <h2 id="capability-map" class="h3">Capability to evidence</h2>
+      <p class="muted reading map-intro">Which projects demonstrate each capability, and where the strongest supporting evidence lives.</p>
+      <div class="table-wrap">
+        <table>
+          <caption class="visually-hidden">Capabilities, the projects that demonstrate them and the main evidence entry</caption>
+          <thead>
+            <tr><th scope="col">Capability</th><th scope="col">Projects</th><th scope="col">Main evidence</th></tr>
+          </thead>
+          <tbody>
+            {
+              capabilities.map((c) => (
+                <tr>
+                  <th scope="row">{c.capability}</th>
+                  <td>
+                    {c.projects.map((s, i) => (
+                      <>
+                        {i > 0 && ", "}
+                        <a href={`/portfolio/${s}/`}>{nameOf(s)}</a>
+                      </>
+                    ))}
+                  </td>
+                  <td>
+                    <a href={`/sources/#${c.evidence}`}>{claimShortTitle(c.evidence)}</a>
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>("[data-controls]");
+  const index = document.querySelector<HTMLElement>("[data-index]");
+  const results = document.querySelector<HTMLElement>("[data-results]");
+  const empty = document.querySelector<HTMLElement>("[data-empty]");
+  if (form && index && results && empty) {
+    form.hidden = false;
+    const input = form.querySelector<HTMLInputElement>("#project-search")!;
+    const items = [...index.querySelectorAll<HTMLElement>("[data-project]")];
+    const categoryButtons = [...form.querySelectorAll<HTMLButtonElement>("[data-category]")];
+    const viewButtons = [...form.querySelectorAll<HTMLButtonElement>("[data-view]")];
+    const params = new URLSearchParams(location.search);
+    const state = {
+      q: params.get("q") ?? "",
+      category: params.get("category") ?? "",
+      view: params.get("view") === "list" ? "list" : "grid",
+    };
+    if (!categoryButtons.some((b) => b.dataset.category === state.category)) state.category = "";
+
+    const render = () => {
+      const q = state.q.trim().toLowerCase();
+      let shown = 0;
+      for (const item of items) {
+        const matches =
+          (!state.category || (item.dataset.categories ?? "").split("|").includes(state.category)) &&
+          (!q || (item.dataset.search ?? "").includes(q));
+        item.hidden = !matches;
+        if (matches) shown += 1;
+      }
+      categoryButtons.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.category === state.category)));
+      viewButtons.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === state.view)));
+      index.dataset.view = state.view;
+      results.textContent = `${shown} of ${items.length} projects`;
+      empty.hidden = shown > 0;
+      const next = new URLSearchParams();
+      if (state.q) next.set("q", state.q);
+      if (state.category) next.set("category", state.category);
+      if (state.view !== "grid") next.set("view", state.view);
+      const query = next.toString();
+      history.replaceState(null, "", `${query ? `?${query}` : location.pathname}${location.hash}`);
+    };
+
+    input.value = state.q;
+    input.addEventListener("input", () => {
+      state.q = input.value;
+      render();
+    });
+    form.addEventListener("submit", (e) => e.preventDefault());
+    categoryButtons.forEach((b) =>
+      b.addEventListener("click", () => {
+        state.category = b.dataset.category ?? "";
+        render();
+      }),
+    );
+    viewButtons.forEach((b) =>
+      b.addEventListener("click", () => {
+        state.view = b.dataset.view === "list" ? "list" : "grid";
+        render();
+      }),
+    );
+    document.querySelector("[data-reset]")?.addEventListener("click", () => {
+      state.q = "";
+      state.category = "";
+      input.value = "";
+      render();
+      input.focus();
+    });
+    render();
+  }
+</script>
+
+<style>
+  .index-drawer {
+    margin-top: var(--space-5);
+  }
+  .flagship {
+    display: grid;
+    gap: var(--space-3);
+  }
+  .art {
+    padding: var(--space-4);
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-3);
+  }
+  .index-head {
+    display: grid;
+    gap: var(--space-5);
+    margin-bottom: var(--space-4);
+  }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-5);
+    align-items: end;
+  }
+  .search {
+    flex: 1 1 260px;
+    max-width: 420px;
+  }
+  fieldset.filter {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+  }
+  .results {
+    margin-bottom: var(--space-4);
+  }
+  .project-index[data-view="list"] {
+    grid-template-columns: 1fr;
+  }
+  .project-index[data-view="list"] :global(.plate) {
+    padding: var(--space-4) var(--space-5);
+  }
+  .empty {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+  }
+  .empty[hidden] {
+    display: none;
+  }
+  .map-intro {
+    margin: var(--space-3) 0 var(--space-5);
+  }
+</style>

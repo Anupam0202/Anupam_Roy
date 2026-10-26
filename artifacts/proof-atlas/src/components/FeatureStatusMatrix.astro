@@ -1,0 +1,115 @@
+---
+/** Native table on wider screens; definition list on narrow screens. */
+import { claimShortTitle } from "@workspace/proof-atlas-core/data/claims";
+import { CELL_LABEL, type FeatureRow } from "../lib/case-nexusrag";
+
+interface Props {
+  rows: FeatureRow[];
+  caption: string;
+  columns: [string, string];
+}
+const { rows, caption, columns } = Astro.props;
+const tone = { on: "ok", off: "neutral", gated: "warning", absent: "neutral", documented: "repository_documented" } as const;
+---
+
+<div class="matrix">
+  <div class="table-wrap wide">
+    <table>
+      <caption class="visually-hidden">{caption}</caption>
+      <thead>
+        <tr>
+          <th scope="col">Feature</th>
+          <th scope="col">{columns[0]}</th>
+          <th scope="col">{columns[1]}</th>
+          <th scope="col">Evidence</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          rows.map((r) => (
+            <tr>
+              <th scope="row">{r.feature}</th>
+              {[r.runtime, r.research].map((cell) => (
+                <td>
+                  <span class="badge" data-status={tone[cell.state]}>
+                    {CELL_LABEL[cell.state]}
+                  </span>
+                  <span class="note">{cell.note}</span>
+                </td>
+              ))}
+              <td>
+                <a href={`/sources/#${r.claimId}`}>{claimShortTitle(r.claimId)}</a>
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+  <dl class="narrow">
+    {
+      rows.map((r) => (
+        <div class="item">
+          <dt>{r.feature}</dt>
+          <dd>
+            <span class="label-inline">{columns[0]}:</span>{" "}
+            <span class="badge" data-status={tone[r.runtime.state]}>
+              {CELL_LABEL[r.runtime.state]}
+            </span>{" "}
+            {r.runtime.note}
+          </dd>
+          <dd>
+            <span class="label-inline">{columns[1]}:</span>{" "}
+            <span class="badge" data-status={tone[r.research.state]}>
+              {CELL_LABEL[r.research.state]}
+            </span>{" "}
+            {r.research.note}
+          </dd>
+          <dd>
+            <a href={`/sources/#${r.claimId}`}>Evidence: {claimShortTitle(r.claimId)}</a>
+          </dd>
+        </div>
+      ))
+    }
+  </dl>
+</div>
+
+<style>
+  .narrow {
+    display: none;
+    margin: 0;
+  }
+  @media (max-width: 767px) {
+    .wide {
+      display: none;
+    }
+    .narrow {
+      display: grid;
+      gap: var(--space-3);
+    }
+  }
+  .note {
+    display: block;
+    margin-top: 6px;
+    color: var(--ink-muted);
+    font-size: var(--text-xs);
+    line-height: 1.5;
+  }
+  .item {
+    padding: var(--space-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+  }
+  .item dt {
+    font-weight: 700;
+    margin-bottom: var(--space-2);
+  }
+  .item dd {
+    margin: 6px 0 0;
+    font-size: var(--text-sm);
+  }
+  .label-inline {
+    font-weight: 650;
+  }
+</style>

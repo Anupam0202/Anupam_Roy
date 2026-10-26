@@ -1,0 +1,100 @@
+---
+/** Cover diagram: two visibly separate lanes (bounded runtime vs research). */
+---
+
+<svg viewBox="0 0 520 260" class="nexus-mini" role="img" aria-labelledby="nexus-mini-title nexus-mini-desc">
+  <title id="nexus-mini-title">NexusRAG: two separate lanes</title>
+  <desc id="nexus-mini-desc">
+    Top lane: the bounded runtime, from documents through a Cloudflare gateway, Qdrant and Supabase to a cited answer. Bottom lane: the local research pipeline with reranking and enrichment. A gap between the lanes shows they are not the same deployed system.
+  </desc>
+  <rect x="8" y="14" width="504" height="104" rx="16" class="lane lane--runtime"></rect>
+  <rect x="8" y="142" width="504" height="104" rx="16" class="lane lane--research"></rect>
+  <g class="doc">
+    <path d="M30 42h34l10 10v40H30z"></path>
+    <path d="M64 42v10h10"></path>
+    <path d="M38 62h26M38 70h26M38 78h18" class="doc-line"></path>
+  </g>
+  <path d="M84 66h48M196 66h42M300 66h40M402 66h40" class="wire"></path>
+  <rect x="132" y="46" width="64" height="40" rx="10" class="node"></rect>
+  <rect x="238" y="46" width="62" height="40" rx="10" class="node node--tech"></rect>
+  <rect x="340" y="46" width="62" height="40" rx="10" class="node"></rect>
+  <circle cx="462" cy="66" r="18" class="answer"></circle>
+  <path d="M454 66l6 6 10-11" class="tick"></path>
+  <g class="doc doc--research">
+    <path d="M30 170h34l10 10v40H30z"></path>
+    <path d="M38 190h26M38 198h26M38 206h18" class="doc-line"></path>
+  </g>
+  <path d="M84 194h30M162 194h24M234 194h24M306 194h24M378 194h24" class="wire wire--research"></path>
+  {[114, 186, 258, 330, 402].map((x) => <rect x={x} y="176" width="48" height="36" rx="9" class="node node--research" />)}
+  <path d="M8 130h504" class="gap"></path>
+</svg>
+
+<style>
+  .nexus-mini {
+    width: 100%;
+  }
+  .lane {
+    stroke-width: 1.2;
+  }
+  .lane--runtime {
+    fill: var(--surface);
+    stroke: var(--ink);
+  }
+  .lane--research {
+    fill: var(--paper);
+    stroke: var(--line-strong);
+    stroke-dasharray: 5 6;
+  }
+  .doc path {
+    fill: var(--surface);
+    stroke: var(--ink);
+    stroke-width: 1.3;
+  }
+  .doc .doc-line {
+    stroke: var(--line-strong);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+  }
+  .doc--research path:first-child {
+    fill: var(--paper);
+    stroke: var(--line-strong);
+  }
+  .wire {
+    stroke: var(--tech);
+    stroke-width: 1.8;
+    fill: none;
+  }
+  .wire--research {
+    stroke: var(--line-strong);
+    stroke-dasharray: 3 4;
+  }
+  .node {
+    fill: var(--surface);
+    stroke: var(--ink);
+    stroke-width: 1.3;
+  }
+  .node--tech {
+    fill: var(--tech-soft);
+  }
+  .node--research {
+    fill: var(--paper);
+    stroke: var(--line-strong);
+  }
+  .answer {
+    fill: var(--signal);
+    stroke: var(--signal-ink);
+    stroke-width: 1.8;
+  }
+  .tick {
+    fill: none;
+    stroke: var(--signal-ink);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .gap {
+    stroke: var(--copper);
+    stroke-width: 1.4;
+    stroke-dasharray: 2 6;
+  }
+</style>

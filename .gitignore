@@ -1,67 +1,35 @@
-# See https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
-
-# compiled output
+# Build output
 dist
-tmp
-out-tsc
 *.tsbuildinfo
-.expo
-.expo-shared
+.astro/
+page-weights.txt
+lhci-report/
 
-# dependencies
+# Dependencies and caches
 node_modules
+.cache/
+.pnpm-store/
 
-# IDEs and editors
+# Test output
+test-results/
+playwright-report/
+
+# Logs
+*.log
+
+# Editors and system files
 /.idea
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.sublime-workspace
-
-# IDE - VSCode
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-
-# misc
-/.sass-cache
-/connect.lock
-/coverage
-/libpeerconnection.log
-npm-debug.log
-pnpm-debug.log*
-yarn-error.log
-*.log
-testem.log
-/typings
-
-# System Files
+*.sublime-workspace
 .DS_Store
 Thumbs.db
-
-.cursor/rules/nx-rules.mdc
-.github/instructions/nx.instructions.md
-
-# Local caches
-.cache/
-.local/
-.playwright-cli/
-/playwright-report/
-/test-results/
-.codex-logs/
-.superpowers/
-.pnpm-store/
 
 # Environment
 .env
 .env.*
 !.env.example
 .vercel
-
-# Local release packages and screenshots
-/Anupam_Roy-production-ready-*.zip
-/screenshots/

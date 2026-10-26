@@ -1,0 +1,27 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PageHero from "../../components/PageHero.astro";
+import DijkstraExplorer from "../../islands/DijkstraExplorer";
+---
+
+<BaseLayout title="Dijkstra's shortest paths" description="Step through Dijkstra's algorithm with a binary-heap priority queue: settled nodes, edge relaxations, a predecessor table and the reconstructed path.">
+  <PageHero eyebrow="Lab / graphs" title="Dijkstra's shortest paths" lede="Always expand the closest unsettled node. With non-negative weights, that one simple rule finds every shortest path from the source." />
+  <section class="section section--tight">
+    <div class="container">
+      <DijkstraExplorer client:visible />
+      <noscript><p class="notice small">Stepping needs JavaScript. The table above shows the starting state.</p></noscript>
+    </div>
+  </section>
+  <section class="section section--tight">
+    <div class="container reading prose">
+      <h2 class="h3">What to look for</h2>
+      <ul>
+        <li>B is first reached at distance 4 directly from A, then improved to 3 through C. That is a relaxation that changes the predecessor.</li>
+        <li>Node G has no edges, so it stays at ∞. Choose it as the target to see an unreachable result.</li>
+        <li>Type a negative weight to see the input rejected: Dijkstra's algorithm is not correct with negative edges, so the explorer refuses rather than guessing.</li>
+      </ul>
+      <h2 class="h3">Determinism</h2>
+      <p>When two nodes in the queue have the same distance, the one with the smaller id is settled first. Distances only change on a strictly shorter path, so among equally short paths the first one found is kept. Run it twice and you get the same trace.</p>
+    </div>
+  </section>
+</BaseLayout>

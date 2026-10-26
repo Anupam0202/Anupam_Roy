@@ -1,0 +1,142 @@
+---
+/**
+ * Architecture lane rendered as an ordered list. The visual diagram and its
+ * text equivalent are the same markup, so nothing is lost without the SVG.
+ */
+import EvidenceBadge from "./EvidenceBadge.astro";
+import type { ProvenanceStatus } from "@workspace/proof-atlas-core/evidence/types";
+
+interface Props {
+  id: string;
+  title: string;
+  subtitle: string;
+  tone: "runtime" | "research" | "neutral";
+  status: ProvenanceStatus;
+  statusLabel?: string;
+  claimId?: string;
+  nodes: Array<{ name: string; detail: string }>;
+}
+const { id, title, subtitle, tone, status, statusLabel, claimId, nodes } = Astro.props;
+---
+
+<section class={`lane lane--${tone}`} aria-labelledby={`${id}-title`}>
+  <header class="lane-head">
+    <div>
+      <h3 id={`${id}-title`} class="h4">{title}</h3>
+      <p class="muted small">{subtitle}</p>
+    </div>
+    <EvidenceBadge status={status} label={statusLabel} claimId={claimId} />
+  </header>
+  <ol class="lane-nodes">
+    {
+      nodes.map((n, i) => (
+        <li class="lane-node">
+          <span class="mono step">{String(i + 1).padStart(2, "0")}</span>
+          <span class="node-name">{n.name}</span>
+          <span class="node-detail">{n.detail}</span>
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<style>
+  .lane {
+    border-radius: var(--radius-lg);
+    padding: clamp(16px, 2vw, 28px);
+  }
+  .lane--runtime {
+    border: 1.5px solid var(--ink);
+    background: var(--surface);
+  }
+  .lane--research {
+    border: 1.5px dashed var(--line-strong);
+    background: var(--paper);
+  }
+  .lane--neutral {
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .lane-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: var(--space-5);
+  }
+  .lane-nodes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+  @media (min-width: 1024px) {
+    .lane-nodes {
+      grid-template-columns: repeat(var(--cols, 6), minmax(0, 1fr));
+      gap: 22px;
+    }
+  }
+  .lane-node {
+    position: relative;
+    display: grid;
+    gap: 4px;
+    align-content: start;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .lane--runtime .lane-node {
+    border-color: var(--ink);
+  }
+  .lane--runtime .lane-node:last-child {
+    background: var(--signal);
+    color: var(--signal-ink);
+    border-color: var(--signal-ink);
+  }
+  .lane--runtime .lane-node:last-child .node-detail,
+  .lane--runtime .lane-node:last-child .step {
+    color: var(--signal-ink);
+  }
+  .lane--research .lane-node {
+    background: var(--paper);
+    border-style: dashed;
+  }
+  .lane-node:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: 22px;
+    bottom: -11px;
+    width: 2px;
+    height: 10px;
+    background: var(--tech);
+  }
+  .lane--research .lane-node:not(:last-child)::after {
+    background: var(--line-strong);
+  }
+  @media (min-width: 1024px) {
+    .lane-node:not(:last-child)::after {
+      left: auto;
+      right: -22px;
+      bottom: auto;
+      top: 22px;
+      width: 22px;
+      height: 2px;
+    }
+  }
+  .step {
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+  }
+  .node-name {
+    font-weight: 700;
+    font-size: var(--text-sm);
+  }
+  .node-detail {
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+    line-height: 1.45;
+  }
+</style>

@@ -1,116 +1,83 @@
-import express, {
-  type Express,
-  type NextFunction,
-  type Request,
-  type Response,
-} from "express";
+import express, { type Express, type NextFunction, type Request, type Response } from "express";
 import helmet from "helmet";
 import pinoHttp from "pino-http";
-import fs from "node:fs";
-import path from "node:path";
-import router from "./routes";
+import { API_CSP } from "@workspace/proof-atlas-core/site/headers";
+import { defaultDeps, type Deps } from "./lib/deps";
 import { logger } from "./lib/logger";
-const app: Express = express();
-const candidates = [
-  path.resolve(process.cwd(), "../anupam-intelligence-systems/dist/public"),
-  path.resolve(
-    process.cwd(),
-    "artifacts/anupam-intelligence-systems/dist/public",
-  ),
-];
-app.set("trust proxy", 1);
-app.disable("x-powered-by");
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        baseUri: ["'self'"],
-        formAction: ["'self'"],
-        frameAncestors: ["'none'"],
-        objectSrc: ["'none'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", "data:", "blob:"],
-        fontSrc: ["'self'", "data:"],
-        connectSrc: ["'self'"],
-        frameSrc: ["'self'"],
-        workerSrc: ["'self'", "blob:"],
-        upgradeInsecureRequests: [],
-      },
-    },
-    crossOriginEmbedderPolicy: false,
-    crossOriginOpenerPolicy: { policy: "same-origin" },
-    crossOriginResourcePolicy: { policy: "same-origin" },
-    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
-  }),
-);
-app.use(
-  pinoHttp({
-    logger,
-    serializers: {
-      req(req) {
-        return { id: req.id, method: req.method, url: req.url?.split("?")[0] };
-      },
-      res(res) {
-        return { statusCode: res.statusCode };
-      },
-    },
-  }),
-);
-app.use((req, res, next) => {
-  if (req.id) res.setHeader("X-Request-Id", String(req.id));
-  next();
-});
-app.use(express.json({ limit: "24kb", strict: true }));
-app.use("/api", router);
-app.use("/api", (_req, res) => {
-  res.status(404).json({ error: "API route not found." });
-});
-const dist = candidates.find((candidate) =>
-  fs.existsSync(path.join(candidate, "index.html")),
-);
-if (dist) {
+import { createApiRouter } from "./routes";
+
+type HttpError = Error & { status?: number; statusCode?: number; type?: string };
+
+/** The JSON API. Pages are static files served by Vercel (or the local preview server). */
+export function createApp(deps: Deps = defaultDeps()): Express {
+  const app = express();
+  // Behind Vercel the client address comes from the platform's X-Forwarded-For; elsewhere
+  // only a local proxy is trusted, so visitors cannot spoof their address.
+  const trustProxy = /^(1|true|yes)$/i.test(deps.env.TRUST_PROXY?.trim() ?? "");
+  app.set("trust proxy", deps.env.VERCEL || trustProxy ? 1 : "loopback");
+  app.disable("x-powered-by");
   app.use(
-    express.static(dist, {
-      etag: true,
-      index: false,
-      maxAge: "1h",
-      setHeaders(res, filePath) {
-        const normalized = filePath.split(path.sep).join("/");
-        if (normalized.endsWith(".html"))
-          res.setHeader("Cache-Control", "no-cache");
-        if (normalized.includes("/assets/"))
-          res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-        if (normalized.includes("/certs/")) {
-          res.setHeader("Cache-Control", "private, max-age=3600");
-          res.setHeader("X-Robots-Tag", "noindex, noarchive");
-        }
+    helmet({
+      // Set once below from the shared API_CSP.
+      contentSecurityPolicy: false,
+      crossOriginResourcePolicy: { policy: "same-origin" },
+      referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+    }),
+  );
+  app.use((_req, res, next) => {
+    res.setHeader("Content-Security-Policy", API_CSP);
+    next();
+  });
+  app.use(
+    pinoHttp({
+      logger,
+      serializers: {
+        // Never log query strings or bodies: they can contain visitor text.
+        req(req) {
+          return { id: req.id, method: req.method, url: req.url?.split("?")[0] };
+        },
+        res(res) {
+          return { statusCode: res.statusCode };
+        },
       },
     }),
   );
-  app.get("/", (_req, res) => {
-    res.setHeader("Cache-Control", "no-cache");
-    res.sendFile(path.join(dist, "index.html"));
+  app.use((req, res, next) => {
+    if (req.id) res.setHeader("X-Request-Id", String(req.id));
+    next();
   });
+  app.use(express.json({ limit: "24kb", strict: true }));
+  app.use("/api", createApiRouter(deps));
+  app.use((_req, res) => {
+    res.status(404).json({ error: "API route not found." });
+  });
+
+  app.use(errorHandler);
+  return app;
 }
-type HttpError = Error & { status?: number; statusCode?: number };
-app.use((error: unknown, req: Request, res: Response, _next: NextFunction) => {
-  if (res.headersSent) return;
+
+/**
+ * Last-resort error handler: JSON errors with a request id, the full error
+ * (message and stack) in the log for 5xx, and Express's own handling when the
+ * response has already started.
+ */
+export function errorHandler(error: unknown, req: Request, res: Response, next: NextFunction) {
+  // Express closes a response that has already started.
+  if (res.headersSent) return next(error);
   const candidate = error as Partial<HttpError>;
   const declared = candidate.status ?? candidate.statusCode;
-  const status =
-    typeof declared === "number" && declared >= 400 && declared < 600
-      ? declared
-      : 500;
-  if (status < 500) req.log.warn({ error, status }, "Request rejected");
-  else req.log.error({ error, status }, "Unhandled request failure");
-  res.status(status).json({
-    error:
-      status < 500
-        ? "The request could not be processed."
-        : "An unexpected server error occurred.",
-    requestId: req.id ? String(req.id) : undefined,
-  });
-});
-export default app;
+  const status = typeof declared === "number" && declared >= 400 && declared < 600 ? declared : 500;
+  if (status < 500) req.log.warn({ status, type: candidate.type }, "Request rejected");
+  else req.log.error({ err: error }, "Unhandled request failure");
+  const message =
+    candidate.type === "entity.parse.failed"
+      ? "The request body is not valid JSON."
+      : candidate.type === "entity.too.large"
+        ? "The request body is too large."
+        : status < 500
+          ? "The request could not be processed."
+          : "An unexpected server error occurred.";
+  res.status(status).json({ error: message, requestId: req.id ? String(req.id) : undefined });
+}
+
+export default createApp();

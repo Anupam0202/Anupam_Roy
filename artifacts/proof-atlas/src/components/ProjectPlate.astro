@@ -1,0 +1,66 @@
+---
+import { inspectionScope, reviewedTreeUrl, type Project } from "@workspace/proof-atlas-core/data/projects";
+import EvidenceBadge from "./EvidenceBadge.astro";
+import ExternalLink from "./ExternalLink.astro";
+
+interface Props {
+  project: Project;
+}
+const { project: p } = Astro.props;
+const rankLabel = { flagship: "Flagship", featured: "Featured", lab: "Lab", archive: "Archive" }[p.rank];
+const search = [p.name, p.oneLiner, p.problem, ...p.tech, ...p.categories].join(" ").toLowerCase();
+---
+
+<article class="plate card" data-project data-categories={p.categories.join("|")} data-search={search}>
+  <div class="plate-top cluster">
+    <span class="chip">{rankLabel}</span>
+    {p.categories.map((c) => <span class="chip">{c}</span>)}
+  </div>
+  <h3 class="h4 plate-title">
+    <a href={`/portfolio/${p.slug}/`}>{p.name.split(/(?<=[_-])/).map((part, i) => (<>{i > 0 && <wbr />}{part}</>))}</a>
+  </h3>
+  <p class="muted">{p.oneLiner}</p>
+  <p class="tech small">{p.tech.join(" · ")}</p>
+  <div class="plate-meta small">
+    <EvidenceBadge status="repository_documented" label={`Repository inspected ${p.reviewedOn}`} />
+    <p class="muted">
+      {inspectionScope(p)} · last commit {p.repository.committedOn} · {p.claimIds.length} ledger {p.claimIds.length === 1 ? "entry" : "entries"}
+    </p>
+  </div>
+  <p class="plate-links cluster small">
+    <a class="text-link" href={`/portfolio/${p.slug}/`}>Case study<span class="visually-hidden"> for {p.name}</span></a>
+    <ExternalLink href={reviewedTreeUrl(p)} class="text-link">Reviewed commit<span class="visually-hidden"> of {p.name}</span></ExternalLink>
+    {
+      p.site && (
+        <ExternalLink href={p.site.href} class="text-link">
+          {p.site.label}
+          <span aria-hidden="true">*</span>
+          <span class="visually-hidden"> for {p.name} (availability not checked)</span>
+        </ExternalLink>
+      )
+    }
+  </p>
+</article>
+
+<style>
+  .plate {
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+  }
+  .plate-title a {
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .plate-title a:hover {
+    text-decoration: underline;
+  }
+  .tech {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--ink-muted);
+  }
+  .plate-links {
+    gap: var(--space-4);
+  }
+</style>

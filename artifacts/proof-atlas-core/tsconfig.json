@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "lib": ["es2023", "dom"],
+    "types": ["node"]
+  },
+  "include": ["src"]
+}

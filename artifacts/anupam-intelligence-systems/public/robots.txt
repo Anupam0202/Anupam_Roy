@@ -1,5 +1,0 @@
-User-agent: *
-Allow: /
-Disallow: /certs/
-
-Sitemap: https://anupam-roy.vercel.app/sitemap.xml

@@ -1,0 +1,95 @@
+---
+import { releaseSha } from "@workspace/proof-atlas-core/site/release";
+import { footerNav } from "../lib/nav";
+import { profile, SITE } from "@workspace/proof-atlas-core/data/profile";
+import Wordmark from "./Wordmark.astro";
+
+const commit = releaseSha(process.env) ?? "";
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div class="stack stack--sm">
+      <Wordmark />
+      <p class="muted small thesis">{profile.thesis}</p>
+      <p class="small">
+        <a href={`mailto:${profile.email}`}>{profile.email}</a>
+      </p>
+    </div>
+    <nav aria-label="Footer">
+      <ul class="link-list">
+        {footerNav.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
+      </ul>
+    </nav>
+    <div>
+      <p class="eyebrow">Elsewhere</p>
+      <ul class="link-list">
+        <li><a href={profile.links.github} rel="noopener noreferrer" target="_blank">GitHub<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+        <li><a href={profile.links.linkedin} rel="noopener noreferrer" target="_blank">LinkedIn<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+        <li><a href={profile.links.credly} rel="noopener noreferrer" target="_blank">Credly<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+        <li><a href={profile.links.codechef} rel="noopener noreferrer" target="_blank">CodeChef<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container meta">
+    <p class="mono muted">
+      © {year} {profile.name} · Content reviewed {SITE.reviewedAt}
+      {commit && <span> · Build {commit}</span>}
+    </p>
+    <p class="mono muted">No analytics, no cookies.</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--line);
+    background: var(--surface);
+    padding-block: var(--space-8) var(--space-6);
+  }
+  .footer-grid {
+    display: grid;
+    gap: var(--space-7);
+  }
+  @media (min-width: 768px) {
+    .footer-grid {
+      grid-template-columns: 1.4fr 1fr 1fr;
+    }
+  }
+  .thesis {
+    max-width: 30ch;
+  }
+  .link-list {
+    list-style: none;
+    margin: var(--space-3) 0 0;
+    padding: 0;
+    display: grid;
+    gap: 2px;
+  }
+  nav .link-list {
+    margin-top: 0;
+  }
+  .link-list a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .link-list a:hover {
+    text-decoration: underline;
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-top: var(--space-7);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--line-soft);
+  }
+  .meta p {
+    font-size: var(--text-xs);
+  }
+</style>

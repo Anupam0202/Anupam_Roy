@@ -1,0 +1,269 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
+import EvidenceBadge from "../components/EvidenceBadge.astro";
+import ExternalLink from "../components/ExternalLink.astro";
+import AskAtlas from "../islands/AskAtlas";
+import { claims } from "@workspace/proof-atlas-core/data/claims";
+import { METHOD_LABEL, STATUS_LABEL, STATUS_DESCRIPTION, type ProvenanceStatus } from "@workspace/proof-atlas-core/evidence/types";
+
+const subjects = [
+  { id: "nexusrag", label: "NexusRAG" },
+  { id: "plantpal", label: "PlantPal" },
+  { id: "projects", label: "Other projects" },
+  { id: "experience", label: "Experience" },
+  { id: "education", label: "Education" },
+  { id: "credentials", label: "Credentials" },
+  { id: "achievements", label: "Achievements" },
+  { id: "site", label: "This site" },
+];
+const statuses = [...new Set(claims.map((c) => c.status))] as ProvenanceStatus[];
+const publicClaims = claims.filter((c) => c.public);
+---
+
+<BaseLayout title="Sources" description="The evidence ledger behind every important claim on this site, with provenance, source excerpts and limitations.">
+  <PageHero eyebrow="Sources / evidence ledger" title="Every claim, with its source." lede={`${publicClaims.length} entries. Each says how it was established — owner statement, repository documentation, inspected source code, certificate document or executed test — and what it does not prove.`} />
+
+  <section id="ask" class="section section--tight" aria-labelledby="ask-h">
+    <div class="container">
+      <h2 id="ask-h" class="h3">Ask the Atlas</h2>
+      <p class="muted reading ask-intro">An AI assistant that answers only from the ledger below. The server checks that every citation in an answer was retrieved for your question; if not, it declines. When AI is unavailable, you get the matching ledger entries instead.</p>
+      <AskAtlas client:idle />
+      <noscript><p class="notice small">Ask the Atlas needs JavaScript. Every entry it could cite is listed in the ledger below.</p></noscript>
+    </div>
+  </section>
+
+  <section class="section section--tight" aria-labelledby="ledger-h">
+    <div class="container">
+      <h2 id="ledger-h" class="h3">Ledger</h2>
+      <details class="disclosure legend">
+        <summary>What the evidence labels mean</summary>
+        <div class="disclosure-body">
+          <dl>
+            {
+              statuses.map((s) => (
+                <div class="legend-row">
+                  <dt><EvidenceBadge status={s} /></dt>
+                  <dd class="small muted">{STATUS_DESCRIPTION[s]}</dd>
+                </div>
+              ))
+            }
+          </dl>
+        </div>
+      </details>
+
+      <form class="filters" data-filters hidden role="search" aria-label="Filter the ledger">
+        <div class="field search">
+          <label for="ledger-q">Search</label>
+          <input id="ledger-q" class="input" type="search" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="ledger-subject">Subject</label>
+          <select id="ledger-subject" class="select">
+            <option value="">All subjects</option>
+            {subjects.map((s) => <option value={s.id}>{s.label}</option>)}
+          </select>
+        </div>
+        <div class="field">
+          <label for="ledger-status">Evidence status</label>
+          <select id="ledger-status" class="select">
+            <option value="">All statuses</option>
+            {statuses.map((s) => <option value={s}>{STATUS_LABEL[s]}</option>)}
+          </select>
+        </div>
+      </form>
+      <p class="small muted count" aria-live="polite" data-count>{publicClaims.length} entries</p>
+      <div class="notice empty-ledger" data-empty hidden>
+        <p>No ledger entries match these filters.</p>
+        <button type="button" class="button button--ghost button--small" data-reset>Reset filters</button>
+      </div>
+
+      <ol class="ledger">
+        {
+          publicClaims.map((c) => (
+            <li id={c.id} class="entry card" data-entry data-subject={c.subject} data-status={c.status} data-search={[c.id, c.claim, c.sourceExcerpt, c.path, c.repository].join(" ").toLowerCase()}>
+              <div class="cluster">
+                <EvidenceBadge status={c.status} />
+                <span class="chip">{METHOD_LABEL[c.method]}</span>
+                <span class="chip">{subjects.find((s) => s.id === c.subject)?.label}</span>
+                <a class="mono small permalink" href={`#${c.id}`}>#{c.id}</a>
+              </div>
+              <h3 class="h4 claim">{c.claim}</h3>
+              {c.sourceExcerpt && <blockquote class="excerpt">{c.sourceExcerpt}</blockquote>}
+              {c.limitations && c.limitations.length > 0 && (
+                <div class="limits">
+                  <p class="small"><strong>Limitations</strong></p>
+                  <ul>{c.limitations.map((l) => <li>{l}</li>)}</ul>
+                </div>
+              )}
+              <p class="small source">
+                {c.sourceUrl ? <ExternalLink href={c.sourceUrl}>{c.path ?? c.sourceTitle ?? "Source"}</ExternalLink> : <span>{c.path ?? c.sourceTitle}</span>}
+                {c.repository && <span class="muted"> · {c.repository}</span>}
+                {c.commitSha && <span class="mono muted"> @ {c.commitSha.slice(0, 7)}</span>}
+                {c.verifiedAt && <span class="muted"> · reviewed {c.verifiedAt}</span>}
+              </p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>("[data-filters]");
+  const count = document.querySelector<HTMLElement>("[data-count]");
+  const empty = document.querySelector<HTMLElement>("[data-empty]");
+  if (form && count && empty) {
+    form.hidden = false;
+    const q = form.querySelector<HTMLInputElement>("#ledger-q")!;
+    const subject = form.querySelector<HTMLSelectElement>("#ledger-subject")!;
+    const status = form.querySelector<HTMLSelectElement>("#ledger-status")!;
+    const entries = [...document.querySelectorAll<HTMLElement>("[data-entry]")];
+    const params = new URLSearchParams(location.search);
+    q.value = params.get("q") ?? "";
+    subject.value = params.get("subject") ?? "";
+    status.value = params.get("status") ?? "";
+    const apply = () => {
+      const term = q.value.trim().toLowerCase();
+      let shown = 0;
+      for (const e of entries) {
+        const ok =
+          (!subject.value || e.dataset.subject === subject.value) &&
+          (!status.value || e.dataset.status === status.value) &&
+          (!term || (e.dataset.search ?? "").includes(term));
+        e.hidden = !ok;
+        if (ok) shown += 1;
+      }
+      count.textContent = `${shown} of ${entries.length} entries`;
+      empty.hidden = shown > 0;
+      const next = new URLSearchParams();
+      if (q.value) next.set("q", q.value);
+      if (subject.value) next.set("subject", subject.value);
+      if (status.value) next.set("status", status.value);
+      const query = next.toString();
+      history.replaceState(null, "", `${query ? `?${query}` : location.pathname}${location.hash}`);
+    };
+    const reset = () => {
+      q.value = subject.value = status.value = "";
+      apply();
+    };
+    form.addEventListener("submit", (e) => e.preventDefault());
+    [q, subject, status].forEach((el) => el.addEventListener("input", apply));
+    empty.querySelector("[data-reset]")?.addEventListener("click", () => {
+      reset();
+      q.focus();
+    });
+    apply();
+    // A link to a hidden entry (on load, or from an Ask the Atlas citation) clears the filters so the entry is visible.
+    const reveal = () => {
+      let id: string;
+      try {
+        id = decodeURIComponent(location.hash.slice(1));
+      } catch {
+        return; // a malformed hash names no entry
+      }
+      const target = id ? document.getElementById(id) : null;
+      if (!target?.hasAttribute("data-entry")) return;
+      if (target.hidden) reset();
+      target.scrollIntoView();
+    };
+    reveal();
+    window.addEventListener("hashchange", reveal);
+  }
+</script>
+
+<style>
+  .ask-intro {
+    margin: var(--space-3) 0 var(--space-5);
+  }
+  .legend {
+    margin: var(--space-4) 0 var(--space-5);
+  }
+  .legend dl {
+    margin: 0;
+    display: grid;
+    gap: var(--space-3);
+  }
+  .legend-row {
+    display: grid;
+    gap: 4px;
+  }
+  @media (min-width: 640px) {
+    .legend-row {
+      grid-template-columns: 14rem 1fr;
+      align-items: center;
+    }
+  }
+  .legend dd {
+    margin: 0;
+  }
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    align-items: end;
+    margin-bottom: var(--space-3);
+  }
+  .search {
+    flex: 1 1 240px;
+  }
+  .count {
+    margin-bottom: var(--space-4);
+  }
+  .empty-ledger {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+  .empty-ledger p {
+    margin: 0;
+  }
+  .ledger {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-4);
+  }
+  .entry {
+    display: grid;
+    gap: var(--space-3);
+    scroll-margin-top: 96px;
+  }
+  .entry:target {
+    border-color: var(--ink);
+    box-shadow: inset 4px 0 0 var(--signal);
+  }
+  .permalink {
+    margin-left: auto;
+    color: var(--ink-muted);
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+  }
+  .claim {
+    font-size: 1.1rem;
+  }
+  .excerpt {
+    margin: 0;
+    padding: 10px 14px;
+    border-left: 3px solid var(--tech);
+    background: var(--paper);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+  .limits ul {
+    margin: 4px 0 0;
+    padding-left: 1.1em;
+    font-size: var(--text-sm);
+    color: var(--ink-muted);
+  }
+  .source {
+    overflow-wrap: anywhere;
+  }
+</style>

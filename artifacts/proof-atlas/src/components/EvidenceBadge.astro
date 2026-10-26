@@ -1,0 +1,35 @@
+---
+import { STATUS_LABEL, STATUS_DESCRIPTION, type ProvenanceStatus } from "@workspace/proof-atlas-core/evidence/types";
+
+interface Props {
+  status: ProvenanceStatus;
+  label?: string;
+  /** When set, links the badge to the claim on /sources/. */
+  claimId?: string;
+}
+const { status, label, claimId } = Astro.props;
+const text = label ?? STATUS_LABEL[status];
+---
+
+{
+  claimId ? (
+    <a class="badge badge-link" data-status={status} href={`/sources/#${claimId}`} title={STATUS_DESCRIPTION[status]}>
+      {text}
+      <span class="visually-hidden">: view the source for this claim</span>
+    </a>
+  ) : (
+    <span class="badge" data-status={status} title={STATUS_DESCRIPTION[status]}>
+      {text}
+    </span>
+  )
+}
+
+<style>
+  .badge-link {
+    text-decoration: none;
+    min-height: 28px;
+  }
+  .badge-link:hover {
+    text-decoration: underline;
+  }
+</style>

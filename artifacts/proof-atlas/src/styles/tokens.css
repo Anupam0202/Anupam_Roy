@@ -1,0 +1,163 @@
+/*
+ * Mineral Ink, evolved. Spec colours are kept for fills and graphics; the
+ * *-ink variants are darker text colours chosen so every text pair passes
+ * WCAG AA (checked by tests/unit/contrast.test.ts against this file).
+ */
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  --paper: #f2f0e8;
+  --surface: #faf9f5;
+  --ink: #182321;
+  --ink-muted: #53605a;
+  --line: #cbd0c6;
+  --line-soft: #dee1d8;
+  --line-strong: #7c8a80;
+  --signal: #d9f28b;
+  --signal-ink: #26340f;
+  --tech: #4765db;
+  --tech-ink: #3a53b4;
+  --tech-soft: #e4e8f2;
+  --copper: #bb7454;
+  --copper-ink: #8e5a40;
+  --copper-soft: #f3e4da;
+  --danger: #a73434;
+  --danger-soft: #f6dfdc;
+
+  --status-verified: #2f6b3a;
+  --status-verified-bg: #e3eed9;
+  --status-documented: var(--tech-ink);
+  --status-documented-bg: var(--tech-soft);
+  --status-owner: var(--copper-ink);
+  --status-owner-bg: var(--copper-soft);
+  --status-illustrative: var(--ink-muted);
+  --status-illustrative-bg: var(--line-soft);
+  --status-warning: #7a4f00;
+  --status-warning-bg: #f6e8c8;
+
+  --focus-ring: #3a53b4;
+  --selection-bg: #d9f28b;
+  --selection-ink: #182321;
+  --shadow: 0 1px 2px rgb(24 35 33 / 0.06), 0 12px 32px -18px rgb(24 35 33 / 0.28);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #111a18;
+    --surface: #1a2521;
+    --ink: #f2f0e8;
+    --ink-muted: #b0bbb3;
+    --line: #46554c;
+    --line-soft: #2d3b33;
+    --line-strong: #637068;
+    --signal: #d9f28b;
+    --signal-ink: #182321;
+    --tech: #94a8ff;
+    --tech-ink: #94a8ff;
+    --tech-soft: #263450;
+    --copper: #e4a184;
+    --copper-ink: #e4a184;
+    --copper-soft: #3a2a22;
+    --danger: #ff9b9b;
+    --danger-soft: #3b2323;
+    --status-verified: #a8d8a0;
+    --status-verified-bg: #1e3324;
+    --status-warning: #f2c46b;
+    --status-warning-bg: #3a3020;
+    --focus-ring: #d9f28b;
+    --selection-bg: #d9f28b;
+    --selection-ink: #111a18;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 16px 40px -20px rgb(0 0 0 / 0.7);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #111a18;
+  --surface: #1a2521;
+  --ink: #f2f0e8;
+  --ink-muted: #b0bbb3;
+  --line: #46554c;
+  --line-soft: #2d3b33;
+  --line-strong: #637068;
+  --signal: #d9f28b;
+  --signal-ink: #182321;
+  --tech: #94a8ff;
+  --tech-ink: #94a8ff;
+  --tech-soft: #263450;
+  --copper: #e4a184;
+  --copper-ink: #e4a184;
+  --copper-soft: #3a2a22;
+  --danger: #ff9b9b;
+  --danger-soft: #3b2323;
+  --status-verified: #a8d8a0;
+  --status-verified-bg: #1e3324;
+  --status-warning: #f2c46b;
+  --status-warning-bg: #3a3020;
+  --focus-ring: #d9f28b;
+  --selection-bg: #d9f28b;
+  --selection-ink: #111a18;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 16px 40px -20px rgb(0 0 0 / 0.7);
+}
+
+:root {
+  --font-sans: "Manrope Variable", "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Newsreader Variable", "Newsreader", Georgia, "Times New Roman", serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+
+  --text-xs: clamp(0.72rem, 0.7rem + 0.08vw, 0.82rem);
+  --text-sm: clamp(0.84rem, 0.81rem + 0.12vw, 0.96rem);
+  --text-body: clamp(1rem, 0.96rem + 0.18vw, 1.125rem);
+  --text-lead: clamp(1.18rem, 1.03rem + 0.55vw, 1.65rem);
+  --text-h3: clamp(1.55rem, 1.2rem + 1.25vw, 2.45rem);
+  --text-h2: clamp(2.35rem, 1.45rem + 3.4vw, 5.4rem);
+  --text-hero: clamp(3.15rem, 1.45rem + 7.3vw, 8.75rem);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --space-10: 128px;
+  --space-11: 160px;
+
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 999px;
+
+  --content-max: 1440px;
+  --reading-max: 790px;
+  --gutter: 20px;
+
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-micro: 150ms;
+  --dur-control: 200ms;
+  --dur-diagram: 420ms;
+}
+
+@media (min-width: 480px) {
+  :root {
+    --gutter: 24px;
+  }
+}
+@media (min-width: 768px) {
+  :root {
+    --gutter: 36px;
+  }
+}
+@media (min-width: 1024px) {
+  :root {
+    --gutter: 56px;
+  }
+}
+@media (min-width: 1440px) {
+  :root {
+    --gutter: 72px;
+  }
+}

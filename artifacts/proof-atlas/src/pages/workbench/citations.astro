@@ -1,0 +1,28 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PageHero from "../../components/PageHero.astro";
+import CitationResolver from "../../islands/CitationResolver";
+---
+
+<BaseLayout title="Citation Integrity" description="Resolve DOIs with Crossref and DataCite, compare providers, flag missing fields and export BibTeX, RIS or CSL-JSON.">
+  <PageHero eyebrow="Workbench / citations" title="Citation Integrity" lede="Check that a citation resolves, see which provider said what and when, and export clean references. Metadata from Crossref and DataCite." />
+  <section class="section section--tight">
+    <div class="container">
+      <CitationResolver client:load />
+      <noscript><p class="notice">This tool needs JavaScript. The rest of the site works without it.</p></noscript>
+      <details class="disclosure about-tool">
+        <summary>Sources, caching and limits</summary>
+        <div class="disclosure-body prose">
+          <p>DOIs resolve through Crossref first; if Crossref has no record, DataCite is tried. DOI records are cached for 7 days and searches for 1 hour. Each record shows the provider's own last-updated time.</p>
+          <p>Abstracts are never fetched or stored, and no citation counts or impact factors are shown. Exports are deterministic: the same records always produce the same file.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .about-tool {
+    margin-top: var(--space-7);
+  }
+</style>

@@ -1,0 +1,87 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PageHero from "../../components/PageHero.astro";
+
+const experiments = [
+  {
+    href: "/lab/retrieval-fusion/",
+    eyebrow: "Ranking",
+    title: "Reciprocal Rank Fusion",
+    text: "Merge a lexical and a semantic ranking and see every term of the score. Change k and watch the order respond, then compare it with NexusRAG's deployed blend.",
+    tests: "rrf.test.ts — fixture, identical, disjoint, missing and empty rankings, duplicates, invalid k, ties.",
+  },
+  {
+    href: "/lab/binary-search/",
+    eyebrow: "Search",
+    title: "Binary Search",
+    text: "Step through low, high and mid on a sorted array. Each step states its comparison and why half of the interval can be discarded.",
+    tests: "binary-search.test.ts — empty, single, first, last, absent, duplicates, negatives, large arrays, unsorted input.",
+  },
+  {
+    href: "/lab/dijkstra/",
+    eyebrow: "Graphs",
+    title: "Dijkstra's shortest paths",
+    text: "Settle one node at a time from a priority queue, see each edge relaxation, and read the predecessor table that rebuilds the path.",
+    tests: "dijkstra.test.ts — simple, disconnected, source equals target, zero weights, equal paths, negative edges, direction.",
+  },
+  {
+    href: "/lab/architecture-xray/",
+    eyebrow: "Systems",
+    title: "Architecture X-Ray",
+    text: "A retrieval-augmented generation pipeline, layer by layer: responsibility, inputs, outputs, failure modes and tradeoffs, each tied to NexusRAG evidence.",
+    tests: "Static content; every NexusRAG line links to a ledger entry.",
+  },
+];
+---
+
+<BaseLayout title="Engineering Lab" description="Small, tested explorers for the algorithms behind the portfolio: Reciprocal Rank Fusion, binary search, Dijkstra's algorithm and a RAG architecture x-ray.">
+  <PageHero eyebrow="Engineering Lab" title="See the algorithm do the work." lede="Each explorer calls the same functions the unit tests check, so every number it shows is computed from your input. The Architecture X-Ray is a guided reading of a pipeline rather than an explorer." />
+  <section class="section">
+    <div class="container">
+      <ul class="experiments">
+        {
+          experiments.map((x) => (
+            <li class="card experiment">
+              <p class="eyebrow">{x.eyebrow}</p>
+              <h2 class="h3">
+                <a class="card-link" href={x.href}>{x.title}</a>
+              </h2>
+              <p class="muted">{x.text}</p>
+              <p class="small mono tests">{x.tests}</p>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="notice notice--tech small note">The algorithms and their tests live in <span class="mono">artifacts/proof-atlas-core/src/algorithms</span>. The Workbench's document search reuses the same RRF function.</p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .experiments {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-5);
+  }
+  @media (min-width: 900px) {
+    .experiments {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .experiment {
+    display: grid;
+    gap: var(--space-3);
+    align-content: start;
+  }
+  .tests {
+    color: var(--ink-muted);
+    border-top: 1px solid var(--line-soft);
+    padding-top: var(--space-3);
+  }
+  .note {
+    margin-top: var(--space-7);
+    max-width: 80ch;
+  }
+</style>

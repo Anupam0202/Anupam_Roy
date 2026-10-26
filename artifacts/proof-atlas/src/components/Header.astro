@@ -1,0 +1,316 @@
+---
+import { primaryNav, contactNav, footerNav, isCurrent } from "../lib/nav";
+import Wordmark from "./Wordmark.astro";
+const current = Astro.url.pathname;
+---
+
+<header class="site-header">
+  <div class="container bar">
+    <a class="brand" href="/">
+      <Wordmark /><span class="visually-hidden"> — home</span>
+    </a>
+    <nav class="desktop-nav" aria-label="Primary">
+      <ul>
+        {
+          primaryNav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={isCurrent(current, item.href) ? "page" : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <div class="actions">
+      <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="Switch colour theme" hidden>
+        <svg class="icon-moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+          <path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path>
+        </svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"></circle>
+          <path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+        </svg>
+      </button>
+      <a class="button button--small contact-link" href={contactNav.href} aria-current={isCurrent(current, contactNav.href) ? "page" : undefined}>
+        {contactNav.label}
+      </a>
+      <!-- Revealed by script: without JavaScript the link list below is the menu. -->
+      <button class="icon-button menu-button" type="button" data-menu-open aria-haspopup="dialog" aria-controls="mobile-nav" hidden>
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+          <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+        </svg>
+        <span class="visually-hidden">Open menu</span>
+      </button>
+    </div>
+  </div>
+  <noscript>
+    <nav class="noscript-nav container" aria-label="Site">
+      <ul>
+        {
+          footerNav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={isCurrent(current, item.href) ? "page" : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </noscript>
+  <dialog id="mobile-nav" class="mobile-nav" aria-label="Site menu">
+    <div class="mobile-nav-head">
+      <span class="eyebrow">Menu</span>
+      <button class="icon-button" type="button" data-menu-close>
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+          <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+        </svg>
+        <span class="visually-hidden">Close menu</span>
+      </button>
+    </div>
+    <nav aria-label="Mobile">
+      <ul>
+        <li><a href="/" aria-current={current === "/" ? "page" : undefined}>Home</a></li>
+        {
+          footerNav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={isCurrent(current, item.href) ? "page" : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </dialog>
+</header>
+
+<script>
+  import { THEME_COLOR } from "../lib/theme-script";
+
+  const root = document.documentElement;
+  const toggle = document.querySelector<HTMLButtonElement>("[data-theme-toggle]");
+  const effective = (): "light" | "dark" =>
+    (root.dataset.theme as "light" | "dark" | undefined) ?? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  /** The icon shows the current theme; the label names the action. */
+  const sync = () => {
+    const now = effective();
+    if (toggle) {
+      toggle.dataset.mode = now;
+      toggle.setAttribute("aria-label", `Switch to ${now === "dark" ? "light" : "dark"} theme`);
+    }
+    if (root.dataset.theme)
+      document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute("content", THEME_COLOR[now]));
+  };
+  if (toggle) {
+    toggle.hidden = false;
+    sync();
+    matchMedia("(prefers-color-scheme: dark)").addEventListener("change", sync);
+    toggle.addEventListener("click", () => {
+      const next = effective() === "dark" ? "light" : "dark";
+      root.dataset.theme = next;
+      try {
+        localStorage.setItem("pa-theme", next);
+      } catch {
+        /* storage blocked: theme still applies for this page */
+      }
+      sync();
+    });
+  }
+
+  const dialog = document.querySelector<HTMLDialogElement>("#mobile-nav");
+  const openButton = document.querySelector<HTMLButtonElement>("[data-menu-open]");
+  const closeButton = dialog?.querySelector<HTMLButtonElement>("[data-menu-close]");
+  if (dialog && openButton && typeof dialog.showModal === "function") {
+    openButton.hidden = false;
+    openButton.addEventListener("click", () => {
+      dialog.showModal();
+      root.classList.add("menu-open");
+      openButton.setAttribute("aria-expanded", "true");
+    });
+    closeButton?.addEventListener("click", () => dialog.close());
+    dialog.addEventListener("close", () => {
+      root.classList.remove("menu-open");
+      openButton.setAttribute("aria-expanded", "false");
+      openButton.focus();
+    });
+    dialog.addEventListener("click", (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+    // Tab and Shift+Tab cycle inside the open menu.
+    dialog.addEventListener("keydown", (event) => {
+      if (event.key !== "Tab") return;
+      const focusable = [...dialog.querySelectorAll<HTMLElement>("a[href], button:not([disabled])")];
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    });
+    dialog.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => dialog.close()));
+    openButton.setAttribute("aria-expanded", "false");
+  }
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--paper);
+    background: color-mix(in srgb, var(--paper) 94%, transparent);
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    min-height: 68px;
+  }
+  .brand {
+    color: var(--ink);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-right: auto;
+  }
+  .desktop-nav {
+    display: none;
+  }
+  .desktop-nav ul {
+    display: flex;
+    gap: 4px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .desktop-nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: var(--radius-full);
+    color: var(--ink-muted);
+    font-weight: 600;
+    font-size: var(--text-sm);
+    text-decoration: none;
+  }
+  .desktop-nav a:hover {
+    color: var(--ink);
+  }
+  .desktop-nav a[aria-current="page"] {
+    color: var(--ink);
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .icon-button {
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .icon-button:hover {
+    border-color: var(--line);
+  }
+  .contact-link[aria-current="page"] {
+    background: var(--signal);
+    color: var(--signal-ink);
+    border-color: var(--signal);
+  }
+  .mobile-nav {
+    width: min(420px, calc(100vw - 24px));
+    max-height: calc(100dvh - 24px);
+    margin: 12px 12px auto auto;
+    padding: var(--space-5);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--shadow);
+  }
+  .mobile-nav::backdrop {
+    background: rgb(17 26 24 / 0.45);
+  }
+  .mobile-nav-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-3);
+  }
+  .mobile-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .mobile-nav a {
+    display: flex;
+    align-items: center;
+    min-height: 52px;
+    padding: 0 12px;
+    border-radius: var(--radius-sm);
+    color: var(--ink);
+    font-size: 1.15rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .mobile-nav a[aria-current="page"] {
+    background: var(--signal);
+    color: var(--signal-ink);
+  }
+  .theme-toggle .icon-sun,
+  .theme-toggle[data-mode="dark"] .icon-moon {
+    display: none;
+  }
+  .theme-toggle[data-mode="dark"] .icon-sun {
+    display: block;
+  }
+  .noscript-nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px var(--space-3);
+    list-style: none;
+    margin: 0;
+    padding: 0 0 var(--space-2);
+  }
+  .noscript-nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--ink);
+    font-weight: 600;
+    font-size: var(--text-sm);
+  }
+  .noscript-nav a[aria-current="page"] {
+    text-decoration-thickness: 2px;
+  }
+  @media (min-width: 1024px) {
+    .desktop-nav {
+      display: block;
+    }
+    .menu-button,
+    .noscript-nav {
+      display: none;
+    }
+  }
+  @media (max-width: 420px) {
+    .contact-link {
+      display: none;
+    }
+  }
+</style>

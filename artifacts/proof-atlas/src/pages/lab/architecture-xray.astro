@@ -1,0 +1,236 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PageHero from "../../components/PageHero.astro";
+import EvidenceBadge from "../../components/EvidenceBadge.astro";
+import { claimById } from "@workspace/proof-atlas-core/data/claims";
+import { layers, LAYER_STATUS_LABEL } from "../../lib/xray";
+
+for (const layer of layers) for (const n of layer.nexusrag) if (!claimById(n.claimId)) throw new Error(`xray: unknown claim ${n.claimId}`);
+---
+
+<BaseLayout title="Architecture X-Ray" description="A retrieval-augmented generation pipeline layer by layer — responsibility, inputs, outputs, failure modes and tradeoffs — with NexusRAG evidence for each layer.">
+  <PageHero eyebrow="Lab / systems" title="Architecture X-Ray" lede="Eight layers of a retrieval-augmented generation system. For each: what it is responsible for, what goes in and out, how it fails, and what NexusRAG's repository shows about it.">
+    <p class="small muted hero-note">The responsibilities, failure modes and tradeoffs are general engineering guidance. Only the NexusRAG lines are claims, and each links to its source.</p>
+  </PageHero>
+  <section class="section section--tight">
+    <div class="container xray">
+      <nav aria-label="Layers" class="xray-nav">
+        <ol class="flow">
+          {
+            layers.map((l, i) => (
+              <li>
+                <a href={`#${l.id}`}>
+                  <span class="mono">{String(i + 1).padStart(2, "0")}</span> {l.name}
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+      </nav>
+      <ol class="layers">
+        {
+          layers.map((l, i) => (
+            <li class="card layer" id={l.id} aria-labelledby={`${l.id}-h`}>
+              <div class="layer-head">
+                <p class="eyebrow">Layer {String(i + 1).padStart(2, "0")}</p>
+                <h2 id={`${l.id}-h`} class="h3">
+                  {l.name}
+                </h2>
+                <p class="lead-ish">{l.responsibility}</p>
+                <p class="chip status" data-layer-status={l.status}>
+                  {LAYER_STATUS_LABEL[l.status]}
+                </p>
+              </div>
+              <dl class="io">
+                <div>
+                  <dt>Input</dt>
+                  <dd>{l.input}</dd>
+                </div>
+                <div>
+                  <dt>Output</dt>
+                  <dd>{l.output}</dd>
+                </div>
+              </dl>
+              <div class="grid grid--2 cols">
+                <div>
+                  <h3 class="h4">Failure modes</h3>
+                  <ul>
+                    {l.failureModes.map((f) => (
+                      <li>{f}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 class="h4">Tradeoffs</h3>
+                  <ul>
+                    {l.tradeoffs.map((t) => (
+                      <li>{t}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              <div class="evidence">
+                <h3 class="h4">NexusRAG evidence</h3>
+                <ul>
+                  {l.nexusrag.map((n) => (
+                    <li>
+                      <span>{n.text}</span> <EvidenceBadge status={claimById(n.claimId)!.status} claimId={n.claimId} />
+                    </li>
+                  ))}
+                </ul>
+                {l.try && (
+                  <p>
+                    <a class="text-link arrow" href={l.try.href}>
+                      {l.try.label}
+                    </a>
+                  </p>
+                )}
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero-note {
+    margin-top: var(--space-4);
+    max-width: 70ch;
+  }
+  .xray {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+  @media (min-width: 1100px) {
+    .xray {
+      grid-template-columns: 240px minmax(0, 1fr);
+      align-items: start;
+    }
+    .xray-nav {
+      position: sticky;
+      top: 96px;
+    }
+  }
+  .flow {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  @media (min-width: 1100px) {
+    .flow {
+      flex-direction: column;
+      gap: 0;
+      border-left: 2px solid var(--line);
+    }
+  }
+  .flow a {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    min-height: 40px;
+    padding: 4px 12px;
+    color: var(--ink);
+    text-decoration: none;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-full);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+  @media (min-width: 1100px) {
+    .flow a {
+      border: 0;
+      border-radius: 0;
+      margin-left: -2px;
+      border-left: 2px solid transparent;
+    }
+  }
+  .flow a:hover {
+    border-color: var(--ink);
+  }
+  .flow .mono {
+    color: var(--ink-muted);
+    font-size: var(--text-xs);
+  }
+  .layers {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-5);
+  }
+  .layer {
+    display: grid;
+    gap: var(--space-5);
+    scroll-margin-top: 96px;
+  }
+  .layer-head {
+    display: grid;
+    gap: var(--space-2);
+    justify-items: start;
+  }
+  .lead-ish {
+    font-size: var(--text-lead);
+    line-height: 1.4;
+    max-width: 50ch;
+  }
+  .status {
+    white-space: normal;
+    text-align: left;
+  }
+  .status[data-layer-status="runtime"] {
+    color: var(--status-documented);
+    border-color: currentColor;
+  }
+  .status[data-layer-status="site"] {
+    color: var(--status-verified);
+    border-color: currentColor;
+  }
+  .io {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+  }
+  @media (min-width: 768px) {
+    .io {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .io > div {
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    background: var(--paper);
+  }
+  .io dt {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+  }
+  .io dd {
+    margin: 4px 0 0;
+  }
+  .cols ul,
+  .evidence ul {
+    margin: var(--space-2) 0 0;
+    padding-left: 1.2em;
+    display: grid;
+    gap: 6px;
+  }
+  .evidence {
+    border-top: 1px solid var(--line-soft);
+    padding-top: var(--space-4);
+    display: grid;
+    gap: var(--space-2);
+  }
+  .evidence li span {
+    margin-right: 4px;
+  }
+</style>

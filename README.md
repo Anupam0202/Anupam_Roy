@@ -1,182 +1,140 @@
-# Anupam Roy · Intelligence Systems Portfolio
+# Proof Atlas · Anupam Roy
 
-A recruiter-focused full-stack portfolio for Anupam Roy: AI/ML Analyst, production GenAI and RAG engineer, multi-agent systems builder, cloud practitioner, and backend engineer.
+The portfolio and proof workbench of Anupam Roy, AI/ML Analyst. Thesis: **difficult problems become understandable systems.** Every important statement on the site links to an evidence ledger that says how it was established and what it does not prove.
 
 Live site: [anupam-roy.vercel.app](https://anupam-roy.vercel.app/)
 
-## What this repository contains
+## What is here
 
-- A Vite + React + TypeScript frontend.
-- An Express + TypeScript API for contact delivery and the portfolio consultant.
-- A first-session cinematic entry signal plus one permanent hero—never two competing hero sections.
-- Proof-led Experience, Systems, Projects, Mastery, Achievements, Education, Contact, and Executive Brief surfaces.
-- Seventy-four credential records with matching local PDFs, thumbnails, and issuer links.
-- A Gemini-streaming consultant with deterministic offline portfolio fallback.
-- Accessibility, privacy, security-header, error-recovery, and deployment controls.
+- **Portfolio** — NexusRAG and PlantPal case studies plus a page for every other public project repository, each tied to a reviewed commit, with how it works, its engineering evidence and its limitations.
+- **Proof Workbench** — a repository evidence graph (public GitHub data), local document search that never uploads files, and a citation integrity tool (Crossref and DataCite).
+- **Engineering Lab** — Reciprocal Rank Fusion, binary search and Dijkstra explorers that run the same tested functions as the unit tests, and an architecture x-ray of a RAG pipeline.
+- **Experience, Credentials, About, Contact** — 74 credential records, each backed by its certificate PDF.
+- **Sources** — the evidence ledger and *Ask the Atlas*, an assistant that may only cite ledger entries retrieved for the question.
+
+Which outside APIs run, and why the other screened ones do not, is recorded in [`PROVIDER_REVIEW.md`](docs/proof-atlas-3/PROVIDER_REVIEW.md). Owner decisions and the source audit behind the content are in [`docs/proof-atlas-3/`](docs/proof-atlas-3/); the framework and hosting choice is [ADR 0001](docs/adr/0001-proof-atlas-3-framework-and-hosting.md).
 
 ## Repository layout
 
 ```text
 .
-|-- api/
-|   `-- index.js                         # Vercel Express function entry
+|-- .github/workflows/
+|   |-- ci.yml                   # lint, tests and build on Node 22 and 24, E2E (Chromium, WebKit), secret scan
+|   `-- smoke.yml                # read-only checks and mobile Lighthouse after each production deploy
+|-- api/index.js                 # Vercel function entry: exports the bundled API
 |-- artifacts/
-|   |-- anupam-intelligence-systems/    # Vite + React frontend
-|   `-- api-server/                     # Express API
-|-- scripts/                            # Source and release verification
-|-- .env.example
-|-- package.json
-|-- pnpm-lock.yaml
-|-- pnpm-workspace.yaml
-|-- tsconfig.base.json
-|-- tsconfig.json
+|   |-- proof-atlas/             # Astro 7 static site with React islands
+|   |   `-- scripts/             # generate-og.mjs (social images), generate-icons.mjs (PNG icons)
+|   |-- proof-atlas-core/        # Framework-free logic and data shared by site and API
+|   `-- api-server/              # Express API (bundled with esbuild)
+|-- scripts/
+|   |-- ensure-pnpm.cjs          # preinstall guard: installs must use pnpm
+|   |-- serve-local.mjs          # Vercel-parity server for previews and E2E tests
+|   |-- vercel-routing.mjs       # vercel.json route matcher shared with tests
+|   |-- verify-portfolio-source.mjs
+|   |-- verify-dist.mjs          # post-build checks and per-page weight budgets
+|   |-- page-budgets.json
+|   `-- smoke.mjs                # read-only smoke check of a running deployment
+|-- docs/
+|-- eslint.config.js
+|-- lighthouserc.json
 `-- vercel.json
 ```
 
-The frontend and API are separate workspace packages. During development, Vite proxies `/api` to Express. In production, Vercel serves the static frontend and rewrites `/api/*` to the serverless Express entry.
-
-## Portfolio surfaces
-
-The page composition is in `artifacts/anupam-intelligence-systems/src/pages/home.tsx`.
-
-- **Portfolio Entry Signal** — first-session opening sequence with replay control, reduced-motion bypass, and focus-safe modal behavior.
-- **Systems Provenance Atlas** — permanent hero with positioning, proof metrics, and operating-system signals.
-- **Operating Thesis** — outcome-led profile, delivery lanes, skills, and evidence.
-- **Operational AI Flight Recorder** — privacy-safe enterprise and backend experience.
-- **Systems Architecture** — static-first multi-agent workflow, RCA trace, capabilities, and infrastructure.
-- **Projects / AI Lab** — ranked project casefiles with architecture detail and category filters.
-- **The Mastery Constellation** — searchable credential vault with PDFs and issuer verification.
-- **Achievements** — CodeChef 5-Star / 2109 peak rating plus Credly and Google Cloud evidence.
-- **Recognition ledger** — selectable visual receipts without cross-column stretching.
-- **Education and Contact** — academic foundation and validated server-side contact delivery.
-- **Executive Brief** — focused recruiter view with internal scrolling and keyboard controls.
-- **Portfolio Consultant** — Gemini when available, portfolio-grounded offline answers otherwise.
-
-Structured profile content lives in:
-
-```text
-artifacts/anupam-intelligence-systems/src/data/
-```
+`proof-atlas-core` holds the algorithms (RRF, BM25, binary search, Dijkstra), the evidence ledger, credentials, citation and repository normalization, the outbound-request guard and the provider policies. The site and the API both import it, so what the Lab shows is what the tests check.
 
 ## Requirements
 
-- Node.js `>=22.12.0 <25`
-- pnpm `>=10 <11` (the repository pins `pnpm@10.34.5`)
+- Node.js `>=22.22.0 <25` (Astro 7.4.1 needs 22.22 or later)
+- pnpm `10.34.5` (pinned through `packageManager`)
 
 ## Local development
 
 ```bash
 corepack prepare pnpm@10.34.5 --activate
 pnpm install --frozen-lockfile
-pnpm run dev
+pnpm run dev            # site on :5173, API on :3001 (Astro proxies /api)
 ```
 
-Open `http://localhost:5173`. The API listens on `http://localhost:3001`.
+To preview the production build the way Vercel serves it:
+
+```bash
+pnpm run build
+pnpm start              # http://127.0.0.1:4173
+```
 
 ## Environment variables
 
-Copy `.env.example` to `.env` for local development or configure the same values in Vercel:
+Copy `.env.example` to `.env` locally, or set the same names in Vercel. All of them are server-only; none may use a `PUBLIC_` or `VITE_` prefix.
 
-```env
-CONTACT_TO_EMAIL=anupam020202@gmail.com
-CONTACT_FROM_EMAIL=Anupam Roy Portfolio <onboarding@portfolio.dev>
-RESEND_API_KEY=
-GEMINI_API_KEY=
-GEMINI_MODEL=gemini-2.5-flash
-PORT=3001
-VITE_API_PROXY_TARGET=http://localhost:3001
-VITE_APP_RELEASE=local
-```
+| Name | Needed for | Notes |
+| --- | --- | --- |
+| `RESEND_API_KEY` | Contact form | Without it (or without `CONTACT_TO_EMAIL`), `/api/contact` answers 503 and the page offers email instead. |
+| `CONTACT_TO_EMAIL` | Contact form | Where messages are delivered. |
+| `CONTACT_FROM_EMAIL` | Contact form | Sender. Defaults to `onboarding@resend.dev`, which only delivers to the Resend account owner; use a verified domain in production. |
+| `CONTACT_FALLBACK_FROM_EMAIL` | Contact form | Optional sender tried once when Resend rejects `CONTACT_FROM_EMAIL` because its domain is not verified. |
+| `RESEND_SANDBOX_TO_EMAIL` | Contact form | Optional recipient used once when Resend only allows test emails to the account owner. |
+| `GEMINI_API_KEY`, `GEMINI_MODEL` | Ask the Atlas | Optional. Without a key, the assistant shows matching ledger entries instead. `GEMINI_MODEL` defaults to `gemini-3.8-flash`. A malformed id uses the default; an id Google reports as not found is retried once with the default, which that server instance then keeps using, and `/api/status` shows it under `assistant.fallbackFrom`. |
+| `AI_ASSISTANT_ENABLED` | Ask the Atlas | Set to `false` to switch AI off without removing the key. |
+| `PROVIDERS_DISABLED` | Every provider call | Optional comma-separated provider policy ids (for example `datacite,npm`) to switch off without a code change; `/api/status` lists them. |
+| `GITHUB_TOKEN` | Repository Evidence Graph | Optional; raises GitHub's rate limit. Use a token with public read access only. |
+| `CROSSREF_MAILTO` | Citation tools | Optional contact address for Crossref's polite pool. |
+| `TRUST_PROXY` | Rate limits | Optional. Set to `1` or `true` when a reverse proxy sits in front of the server outside Vercel, so the client address comes from `X-Forwarded-For`. On Vercel (`VERCEL` is set) the proxy is always trusted. |
+| `LOG_LEVEL` | Logging | Optional pino level (`info` by default; `silent` in tests). |
+| `PORT`, `HOST` | Local servers | The API dev server listens on `PORT` (3001 in `.env.example`); `pnpm start` serves the built site on `HOST`:`PORT` (127.0.0.1:4173 by default). |
+| `API_PROXY_TARGET` | `astro dev` | Where the dev server proxies `/api` (default `http://localhost:3001`). |
+| `E2E_PORT` | Playwright | Port for the end-to-end test server (default 4173). |
 
-Notes:
+On Vercel, environment variable changes apply to new deployments only: redeploy after saving a change, including `PROVIDERS_DISABLED` ([Vercel docs](https://vercel.com/docs/environment-variables/managing-environment-variables)). Vercel sets `VERCEL` and `VERCEL_GIT_COMMIT_SHA` itself; the second is reported as `release` by `/api/status`.
 
-- `GEMINI_API_KEY` is optional. Without it, the consultant uses offline portfolio intelligence.
-- `RESEND_API_KEY` is required for real contact delivery.
-- Use a verified Resend sender for production.
-- Never commit `.env` files or expose server keys through `VITE_*` variables.
+## API
 
-## API routes
+| Method | Route | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/healthz` | Process health |
+| `GET` | `/api/status` | Which providers and features are on, without secrets |
+| `POST` | `/api/repository/analyze` | `{ owner, repo, include? }` → evidence graph and coverage report |
+| `POST` | `/api/repository/dependencies` | `{ owner, repo }` → declared dependencies from root `package.json`, `pyproject.toml`, `requirements.txt` |
+| `POST` | `/api/packages/lookup` | `{ ecosystem: "npm" \| "pypi", name }` → latest version, licence, deprecation for one package |
+| `POST` | `/api/citations/resolve` | `{ doi, compare? }` → normalized record, optional Crossref/DataCite comparison |
+| `POST` | `/api/citations/search` | `{ query }` → Crossref bibliographic search (no abstracts) |
+| `POST` | `/api/ai/ask` | `{ question }` → cited answer, abstention, or ledger evidence |
+| `POST` | `/api/contact` | Validated, honeypot-protected contact delivery |
+| `POST` | `/api/client-error` | Bounded browser error reports |
 
-| Method | Route                | Purpose                                            |
-| ------ | -------------------- | -------------------------------------------------- |
-| `GET`  | `/api/healthz`       | Process health check                               |
-| `POST` | `/api/contact`       | Validate, rate-limit, and deliver contact messages |
-| `GET`  | `/api/gemini/status` | Report configured Gemini or offline mode           |
-| `POST` | `/api/gemini/chat`   | Stream a stateless, portfolio-grounded response    |
-| `POST` | `/api/client-error`  | Receive bounded browser diagnostics                |
-
-### Gemini fallback semantics
-
-`/api/gemini/chat` begins an SSE response with HTTP 200 before the upstream model stream is consumed. If Gemini later returns a provider error such as 502, the server emits a safe stream error and closes normally; the browser then labels and serves the deterministic offline portfolio answer. A provider warning followed by an outer HTTP 200 is therefore a recovered upstream failure—not an application crash or a false Gemini success.
-
-The client disables further Gemini attempts for the current open consultant session after that failure. Closing and reopening the consultant performs a fresh availability check.
+Outbound calls never use a visitor-supplied URL. Each provider has a policy in `proof-atlas-core/src/providers/policies.ts` (allowed hosts, paths and methods, timeout, response cap, cache, daily budget, concurrency). Every outbound call, the contact form's call to Resend included, goes through the provider client in `api-server/src/lib/providers.ts` and then `guardedFetch`, which re-checks every redirect, drops credentials on a cross-origin redirect, rejects IP literals and private hosts, and enforces the limits. The client also shares one upstream call between identical concurrent requests, pauses a failing provider briefly, and honours `Retry-After`. A provider whose policy review is older than 180 days is switched off automatically.
 
 ## Security and privacy
 
-- API keys remain server-side.
-- Express disables its identifying header and applies Helmet policies.
-- Request bodies are bounded and routes are rate-limited.
-- Contact input is validated, honeypot-protected, and escaped before email rendering.
-- The Gemini system instruction is restricted to supplied portfolio facts.
-- Generated Markdown links are restricted to known portfolio/proof hosts, section anchors, and the public portfolio email.
-- Client names and internal system identifiers are intentionally excluded.
-- Certificate paths are disallowed in `robots.txt` and receive no-index headers.
-- Dialogs trap focus, restore focus, lock background interaction, and support Escape.
+- Pages are static. Astro writes a per-page Content-Security-Policy `<meta>` with hashes for every script and style it emits; `vercel.json` adds `frame-ancestors` and the other headers from `proof-atlas-core/src/site/headers.ts`. API responses use `default-src 'none'`.
+- No analytics and no cookies. Fonts are self-hosted.
+- The Document Workbench reads files in a Web Worker; nothing is uploaded (checked by `tests/e2e/workbench.spec.ts`).
+- Ask the Atlas sends the model only the visitor's question and the public ledger entries retrieved for it, and the server rejects any answer citing something that was not retrieved.
+- Client names and internal systems from employment are intentionally omitted.
+- Rate limits are in memory per server instance; use a shared store if stricter limits are needed.
 
-For multi-instance distributed rate limiting, replace the in-memory limiter with a shared service such as Upstash Redis.
-
-## Complete release gate
-
-Run from the repository root:
+## Checks
 
 ```bash
-pnpm install --frozen-lockfile
-pnpm run verify:source
-pnpm run typecheck
-pnpm test
-pnpm run build
-pnpm audit --prod
-pnpm -r why protobufjs
-pnpm -r why body-parser
-git diff --check
+pnpm run lint           # ESLint (TypeScript, React hooks, accessibility, Astro), no warnings allowed
+pnpm run check          # source rules, type checks, unit and integration tests
+pnpm run validate:providers   # the provider-policy gate on its own
+pnpm run build          # check + builds + post-build verification of the site
+pnpm run audit:prod     # dependency advisories for shipped code
+pnpm run test:e2e       # Playwright (Chromium) against the Vercel-parity server, after build
+pnpm run test:a11y      # the axe accessibility specs only
+pnpm run smoke <url> [--expect-release <sha7>]      # read-only checks of a running deployment
+pnpm run verify:production   # the same against https://anupam-roy.vercel.app
 ```
 
-Expected dependency resolutions:
+WebKit runs in CI. Locally, run `pnpm --filter @workspace/proof-atlas exec playwright install webkit` once and set `E2E_WEBKIT=1` to include it. To regenerate the social images or the PNG icons: `pnpm --filter @workspace/proof-atlas run og` or `run icons`.
 
-- `protobufjs@7.6.5`
-- `body-parser@2.3.0`
-
-Do not deploy or merge if any required command fails.
-
-## Responsive smoke matrix
-
-Validate at minimum:
-
-- 320 × 568 and 360 × 800
-- 390 × 844 and 430 × 932
-- 768 × 1024 and 820 × 1180
-- 1024 × 768
-- 1280 × 800, 1440 × 900, and a wide desktop
-
-Check the entry signal, fixed navigation, hero, architecture map, project casefiles, credential modal, recognition ledger, Executive Brief, consultant, contact form, footer, keyboard-only navigation, reduced motion, zoom to 200%, and both portrait and landscape orientations.
+`verify-portfolio-source.mjs` enforces content and wiring rules (74 PDF-backed credentials, banned wording such as "verified certifications", no secrets in site code). `verify-dist.mjs` checks every built page: one `<h1>`, CSP meta, canonical link, skip link, no inline styles, internal links and anchors that resolve, the outcome qualifier next to outcome figures, and per-page weight budgets for compressed JavaScript, CSS and HTML, preloaded fonts and images (`scripts/page-budgets.json`, set from measurements plus about 15 %; the homepage JavaScript also has a hard 120 KiB cap). It prints a per-page table.
 
 ## Deployment
 
-`vercel.json` installs the frozen lockfile, runs the production build, serves `artifacts/anupam-intelligence-systems/dist/public`, preserves real 404 behavior, applies security/cache headers, and rewrites only `/api/*` to `api/index.js`.
+Vercel runs `pnpm install --frozen-lockfile` and `pnpm run build`, serves `artifacts/proof-atlas/dist`, and rewrites `/api/*` to `api/index.js`. `vercel.json` also holds the legacy redirects (`/work/*`, `/studio/*`) and adds trailing slashes to page paths (never to `/api`). Unknown paths get the custom 404 page with a real 404 status.
 
-After deployment, smoke-test:
+## Licence
 
-- `/`
-- a deliberately unknown path (must return the custom 404)
-- `/api/healthz`
-- `/api/gemini/status`
-- Gemini success and offline-fallback responses
-- contact validation and one real delivery
-- at least one credential PDF and one issuer link
-- keyboard focus, reduced motion, mobile menu, Executive Brief, and consultant
-
-## Repository policy
-
-Keep source, tests, deployment configuration, `.env.example`, credential PDFs, thumbnails, and production imagery. Do not commit `node_modules`, build output, coverage, caches, logs, screenshots, local ZIPs, private environment files, or one-time release/hotfix reports.
-
-See `PRODUCTION_READINESS.md` for the release checklist and runtime interpretation.
+© Anupam Roy. All rights reserved: the source code, copy, certificates and images are not licensed for reuse (`"license": "UNLICENSED"`). Bundled fonts and dependencies keep their own licences; see `ASSET_LICENSES.md`.

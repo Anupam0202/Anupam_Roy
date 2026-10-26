@@ -1,287 +1,97 @@
-import assert from "node:assert/strict";
-import { access, readFile, readdir } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
+#!/usr/bin/env node
+/**
+ * Source-level release checks for Proof Atlas. Runs before type checks and
+ * tests (`pnpm run check`). Each failure names the rule it protects.
+ */
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const frontend = path.join(root, "artifacts", "anupam-intelligence-systems");
-const sourceRoot = path.join(frontend, "src");
-const readRoot = (relative) => readFile(path.join(root, relative), "utf8");
-const exists = async (candidate) =>
-  access(candidate)
-    .then(() => true)
-    .catch(() => false);
+const site = path.join(root, "artifacts/proof-atlas");
+const core = path.join(root, "artifacts/proof-atlas-core");
+const api = path.join(root, "artifacts/api-server");
+const failures = [];
+const check = (ok, message) => {
+  if (!ok) failures.push(message);
+};
+const read = (p) => readFileSync(path.join(root, p), "utf8");
 
-async function walk(directory) {
-  const entries = await readdir(directory, { withFileTypes: true });
-  const files = [];
-  for (const entry of entries) {
-    const absolute = path.join(directory, entry.name);
-    if (entry.isDirectory()) files.push(...(await walk(absolute)));
-    else files.push(absolute);
+function walk(dir, filter) {
+  const out = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (["node_modules", "dist", ".astro", "test-results", "playwright-report"].includes(entry.name)) continue;
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...walk(full, filter));
+    else if (filter(full)) out.push(full);
   }
-  return files;
+  return out;
 }
 
-const [
-  indexHtml,
-  home,
-  hero,
-  entrySignal,
-  achievementsData,
-  executive,
-  boundary,
-  styles,
-  fallbackStyles,
-  boot,
-  certifications,
-  vercelRaw,
-  packageRaw,
-  robots,
-  notFound,
-] = await Promise.all([
-  readRoot("artifacts/anupam-intelligence-systems/index.html"),
-  readRoot("artifacts/anupam-intelligence-systems/src/pages/home.tsx"),
-  readRoot(
-    "artifacts/anupam-intelligence-systems/src/components/hero/hero-section.tsx",
-  ),
-  readRoot(
-    "artifacts/anupam-intelligence-systems/src/components/hero/portfolio-entry-signal.tsx",
-  ),
-  readRoot("artifacts/anupam-intelligence-systems/src/data/achievements.ts"),
-  readRoot(
-    "artifacts/anupam-intelligence-systems/src/components/sections/executive-view.tsx",
-  ),
-  readRoot(
-    "artifacts/anupam-intelligence-systems/src/components/errors/error-boundary.tsx",
-  ),
-  readRoot("artifacts/anupam-intelligence-systems/src/index.css"),
-  readRoot("artifacts/anupam-intelligence-systems/public/fallback.css"),
-  readRoot("artifacts/anupam-intelligence-systems/public/boot.js"),
-  readRoot("artifacts/anupam-intelligence-systems/src/data/certifications.ts"),
-  readRoot("vercel.json"),
-  readRoot("package.json"),
-  readRoot("artifacts/anupam-intelligence-systems/public/robots.txt"),
-  readRoot("artifacts/anupam-intelligence-systems/public/404.html"),
-]);
+/* Tooling */
+const pkg = JSON.parse(read("package.json"));
+check(pkg.packageManager === "pnpm@10.34.5", "packageManager must stay pnpm@10.34.5");
+check(/^>=22\.22\.0 <25$/.test(pkg.engines?.node ?? ""), "engines.node must be \">=22.22.0 <25\" (Astro 7.4.1 needs Node 22.22 or later)");
 
-const vercel = JSON.parse(vercelRaw);
-const pkg = JSON.parse(packageRaw);
-assert.equal(pkg.packageManager, "pnpm@10.34.5");
-assert.match(pkg.engines.node, />=22\.12\.0/);
-assert.match(indexHtml, /class="boot-fallback"/);
-assert.match(indexHtml, /<script src="\/boot\.js"><\/script>/);
-assert.match(indexHtml, /mailto:anupam020202@gmail\.com/);
-assert.doesNotMatch(indexHtml, /fonts\.(?:googleapis|gstatic)/);
-assert.match(fallbackStyles, /\.js:not\(\.boot-failed\) \.boot-fallback/);
-assert.match(boot, /boot-failed/);
-assert.match(home, /ResilientSection/);
-assert.match(home, /data-portfolio-shell/);
-assert.match(home, /PortfolioEntrySignal/);
-assert.match(home, /shouldAutoOpenEntrySignal/);
-assert.match(boundary, /componentDidCatch/);
-assert.match(boundary, /\/api\/client-error/);
-assert.equal((hero.match(/<h1\b/g) ?? []).length, 1);
-assert.equal((entrySignal.match(/<h1\b/g) ?? []).length, 0);
-assert.match(entrySignal, /useReducedMotion/);
-assert.match(entrySignal, /aria-modal="true"/);
-assert.match(achievementsData, /CodeChef 5-Star tier/);
-assert.match(achievementsData, /value: "5★"/);
-assert.match(achievementsData, /value: "2109"/);
-assert.match(achievementsData, /codechef\.com\/users\/anupam_roy/);
-assert.doesNotMatch(achievementsData, /CodeChef 2-Star|2★/);
-assert.equal((executive.match(/<h1\b/g) ?? []).length, 0);
-assert.doesNotMatch(styles, /\[class\*=["']tracking-/);
-assert.match(styles, /prefers-reduced-motion/);
-assert.match(robots, /Disallow: \/certs\//);
-assert.match(notFound, /noindex,nofollow/);
-assert.equal(
-  vercel.rewrites.length,
-  1,
-  "Only the API rewrite is allowed; unknown routes must return a real 404.",
-);
-assert.match(vercelRaw, /Content-Security-Policy/);
-assert.match(vercelRaw, /noindex, noarchive/);
+/* Deployment wiring */
+const vercel = JSON.parse(read("vercel.json"));
+check(vercel.outputDirectory === "artifacts/proof-atlas/dist", "vercel.json must serve the Astro build");
+check(read("api/index.js").includes("artifacts/api-server/dist/app.mjs"), "api/index.js must export the bundled API app");
+check(!existsSync(path.join(root, "artifacts/anupam-intelligence-systems")), "the retired Vite frontend must not come back");
 
-const [recognitionLedger, enterpriseFlow, consultant, safePortfolioLink] =
-  await Promise.all([
-    readRoot(
-      "artifacts/anupam-intelligence-systems/src/components/sections/premium-achievements.tsx",
-    ),
-    readRoot(
-      "artifacts/anupam-intelligence-systems/src/components/systems/enterprise-flow.tsx",
-    ),
-    readRoot(
-      "artifacts/anupam-intelligence-systems/src/components/assistant/consult-system.tsx",
-    ),
-    readRoot(
-      "artifacts/anupam-intelligence-systems/src/lib/safe-portfolio-link.ts",
-    ),
-  ]);
-assert.match(recognitionLedger, /grid items-start/);
-assert.match(recognitionLedger, /figure className="self-start/);
-assert.match(enterpriseFlow, /initial=\{false\}/);
-assert.doesNotMatch(enterpriseFlow, /whileInView/);
-assert.match(consultant, /Portfolio-grounded only · no invented claims/);
-assert.match(consultant, /role="log"/);
-assert.match(consultant, /isSafePortfolioHref/);
-assert.match(safePortfolioLink, /SAFE_PORTFOLIO_HOSTS/);
-assert.match(safePortfolioLink, /url\.protocol === "https:"/);
-
-for (const relative of [
-  "artifacts/anupam-intelligence-systems/src/components/motion/magnetic-button.tsx",
-  "artifacts/anupam-intelligence-systems/src/components/shared/neural-particles.tsx",
-  "artifacts/anupam-intelligence-systems/src/components/telemetry/telemetry-strip.tsx",
-  "FINAL_RELEASE_REPORT.md",
-  "FINAL_V2_RELEASE_REPORT.md",
-  "IMPLEMENTATION_NOTES.md",
-  "LOCKFILE_INTEGRITY_FIX.md",
-  "RELEASE_GATE_FIXES.md",
-  "V3-RELEASE-NOTES.md",
-]) {
-  assert.equal(
-    await exists(path.join(root, relative)),
-    false,
-    `Obsolete repository artifact remains: ${relative}`,
-  );
+/* Credentials: 74 PDF-backed records (owner decision D3) */
+const credentials = JSON.parse(read("artifacts/proof-atlas-core/src/data/credentials.json"));
+check(Array.isArray(credentials) && credentials.length === 74, `expected 74 credential records, found ${credentials.length}`);
+const pdfs = readdirSync(path.join(site, "public/certs")).filter((f) => f.endsWith(".pdf"));
+const thumbs = readdirSync(path.join(site, "public/cert-thumbs"));
+const smallThumbs = readdirSync(path.join(site, "public/cert-thumbs-480"));
+check(pdfs.length === 74, `expected 74 certificate PDFs, found ${pdfs.length}`);
+check(thumbs.length === 74, `expected 74 certificate thumbnails, found ${thumbs.length}`);
+check(smallThumbs.length === 74 && smallThumbs.every((f) => thumbs.includes(f)), "every certificate thumbnail needs a 480 px variant in public/cert-thumbs-480");
+for (const c of credentials) {
+  check(existsSync(path.join(site, "public", c.pdf)), `missing PDF for ${c.id}: ${c.pdf}`);
+  check(existsSync(path.join(site, "public", c.thumbnail)), `missing thumbnail for ${c.id}: ${c.thumbnail}`);
+  check(c.linkCheck !== "link_verified", `${c.id} claims a verified link, but no link check has been run`);
 }
 
-const sourceFiles = (await walk(sourceRoot)).filter((file) =>
-  /\.(?:ts|tsx)$/.test(file),
-);
-const sourceText = (
-  await Promise.all(sourceFiles.map((file) => readFile(file, "utf8")))
-).join("\n");
-assert.doesNotMatch(
-  sourceText,
-  /SynapseOps|Hybrid Synapse|Synapse Core|SystemTimeDock|HybridSynapseLaunch|useIntroSession/i,
-);
-assert.doesNotMatch(
-  sourceText,
-  /setInterval|repeat:\s*Infinity|animate-ping|text-\[(?:8|9|10|11)px\]|architecture\.slice/,
-);
-assert.doesNotMatch(sourceText, /verified credentials/i);
-
-for (const relative of [
-  "src/components/hero/portfolio-entry-signal.tsx",
-  "src/components/sections/executive-view.tsx",
-  "src/components/certifications/certifications-vault.tsx",
-  "src/components/assistant/consult-system.tsx",
-]) {
-  const content = await readFile(path.join(frontend, relative), "utf8");
-  assert.match(content, /aria-modal="true"/);
-  assert.match(content, /acquirePortfolioShellInert/);
-}
-
-for (const file of sourceFiles.filter((item) => item.endsWith(".tsx"))) {
-  const content = await readFile(file, "utf8");
-  for (const tag of content.match(/<a\b[^>]*target="_blank"[^>]*>/gs) ?? []) {
-    assert.match(
-      tag,
-      /rel="[^"]*(?:noreferrer|noopener)/,
-      `External link missing rel protection in ${path.relative(root, file)}`,
-    );
-  }
-}
-
-const pdfNames = [
-  ...certifications.matchAll(/"([^"]+\.pdf)"\s*,\s*"https?:\/\//g),
-].map((match) => match[1]);
-assert.equal(pdfNames.length, 74);
-for (const pdf of pdfNames) {
-  assert.equal(
-    await exists(path.join(frontend, "public", "certs", pdf)),
-    true,
-    `Missing certificate: ${pdf}`,
-  );
-  assert.equal(
-    await exists(
-      path.join(
-        frontend,
-        "public",
-        "cert-thumbs",
-        pdf.replace(/\.pdf$/, ".webp"),
-      ),
-    ),
-    true,
-    `Missing thumbnail: ${pdf}`,
-  );
-}
-
-const importPatterns = [
-  /from\s+["']([^"']+)["']/g,
-  /import\(\s*["']([^"']+)["']\s*\)/g,
+/* Wording and truthfulness rules */
+const textFiles = [...walk(path.join(site, "src"), (f) => /\.(astro|tsx?|css|md)$/.test(f)), ...walk(path.join(core, "src"), (f) => /\.(ts|json)$/.test(f) && !f.endsWith(".test.ts"))];
+const FORBIDDEN = [
+  [/\b74\s+verified\b/i, 'never "74 verified" credentials'],
+  [/\bverified (?:certifications|credentials)\b/i, 'never "verified certifications/credentials"'],
+  [/\bNexusRAG is production[- ]ready\b/i, "NexusRAG production readiness is not claimed"],
+  [/fonts\.(?:googleapis|gstatic)\.com/, "fonts are self-hosted"],
+  [/<script[^>]+src="https?:\/\//i, "no third-party scripts"],
 ];
-for (const file of sourceFiles) {
-  const content = await readFile(file, "utf8");
-  const specs = importPatterns.flatMap((pattern) =>
-    [...content.matchAll(pattern)].map((match) => match[1]),
-  );
-  for (const spec of specs) {
-    if (!(
-      spec.startsWith("@/") ||
-      spec.startsWith("./") ||
-      spec.startsWith("../")
-    ))
-      continue;
-    const base = spec.startsWith("@/")
-      ? path.join(sourceRoot, spec.slice(2))
-      : path.resolve(path.dirname(file), spec);
-    const candidates = [
-      base,
-      `${base}.ts`,
-      `${base}.tsx`,
-      `${base}.js`,
-      path.join(base, "index.ts"),
-      path.join(base, "index.tsx"),
-    ];
-    assert.equal(
-      (await Promise.all(candidates.map(exists))).some(Boolean),
-      true,
-      `Missing local import ${spec} from ${path.relative(root, file)}`,
-    );
-  }
+for (const file of textFiles) {
+  const text = readFileSync(file, "utf8");
+  for (const [re, rule] of FORBIDDEN) check(!re.test(text), `${path.relative(root, file)}: ${rule}`);
 }
 
-const [
-  finalCredentialData,
-  finalRevealMask,
-  finalWorkspacePolicy,
-  finalLockfile,
-] = await Promise.all([
-  readRoot("artifacts/anupam-intelligence-systems/src/data/certifications.ts"),
-  readRoot(
-    "artifacts/anupam-intelligence-systems/src/components/motion/reveal-mask.tsx",
-  ),
-  readRoot("pnpm-workspace.yaml"),
-  readRoot("pnpm-lock.yaml"),
-]);
+/* Secrets stay on the server */
+const clientFiles = walk(path.join(site, "src"), (f) => /\.(astro|tsx?|mjs)$/.test(f));
+for (const file of clientFiles) {
+  const text = readFileSync(file, "utf8");
+  check(!/import\.meta\.env\.(?!SSR|DEV|PROD|BASE_URL|MODE|SITE)\w+/.test(text), `${path.relative(root, file)}: no build-time env values in site code`);
+  check(!/\b(GEMINI_API_KEY|RESEND_API_KEY|GITHUB_TOKEN)\b/.test(text), `${path.relative(root, file)}: server secret names must not appear in site code`);
+}
+const envExample = read(".env.example");
+check(!/^(PUBLIC_|VITE_)\w*(KEY|TOKEN|SECRET)/m.test(envExample), ".env.example: no PUBLIC_/VITE_ secrets");
+check(!/=(AIza|re_|ghp_|sk-)\w+/.test(envExample), ".env.example must not contain real-looking keys");
+for (const file of walk(path.join(root, "artifacts"), (f) => /\.(ts|tsx|astro|mjs|js|json)$/.test(f))) {
+  const text = readFileSync(file, "utf8");
+  check(!/\b(AIza[0-9A-Za-z_-]{30,}|ghp_[0-9A-Za-z]{30,}|re_[0-9A-Za-z]{20,})\b/.test(text), `${path.relative(root, file)}: looks like a committed secret`);
+}
 
-assert.match(
-  finalCredentialData,
-  /export const FEATURED_CERT_NAMES = \[[\s\S]*\] as const;/,
-);
-assert.doesNotMatch(finalCredentialData, /FEATURED_CERT_NAMES = new Set/);
-assert.match(finalRevealMask, /delay\?: number/);
-assert.match(finalRevealMask, /useReducedMotion/);
-assert.match(finalWorkspacePolicy, /body-parser: 2\.3\.0/);
-assert.match(finalWorkspacePolicy, /protobufjs: 7\.6\.5/);
-assert.match(
-  finalWorkspacePolicy,
-  /ignoredBuiltDependencies:[\s\S]*["']@google\/genai["'][\s\S]*protobufjs/,
-);
-assert.match(finalLockfile, /body-parser@2\.3\.0/);
-assert.match(finalLockfile, /protobufjs@7\.6\.5/);
-const protobufjsResolution = finalLockfile.match(
-  /protobufjs@7\.6\.5:\s+resolution:\s*\{integrity:\s*([^}\s]+)\s*\}/,
-);
-assert.equal(
-  protobufjsResolution?.[1],
-  "sha512-/FPD0nUc9jH6rfFjji9IBqOz4pcSE3CsT1m7Ep6Mdb0LxSUMj8hgl6GomOvZzpNpAqqGaXA0P3VSrZLFzIhQrw==",
-);
-assert.doesNotMatch(finalLockfile, /body-parser@2\.2\.2/);
-assert.doesNotMatch(finalLockfile, /protobufjs@7\.6\.3/);
+/* API surface */
+const apiRoutes = walk(path.join(api, "src/routes"), (f) => f.endsWith(".ts") && !f.endsWith(".test.ts")).map((f) => readFileSync(f, "utf8")).join("\n");
+for (const route of ["/status", "/repository/analyze", "/repository/dependencies", "/packages/lookup", "/citations/resolve", "/citations/search", "/ai/ask", "/contact"])
+  check(apiRoutes.includes(`"${route}"`), `API route ${route} is missing`);
+check(!/@google\/genai/.test(read("artifacts/api-server/package.json")), "the Gemini SDK was replaced by a guarded REST call");
+check(statSync(path.join(api, "src/app.test.ts")).isFile(), "API integration tests are required");
 
-console.log(
-  `Portfolio source verification passed: ${sourceFiles.length} source files, 74 credential records, static architecture rendering, safe consultant links, secure dependency pins, and protected entry/modal flows.`,
-);
+if (failures.length) {
+  console.error(`Source verification failed (${failures.length}):\n- ${failures.join("\n- ")}`);
+  process.exit(1);
+}
+console.log(`Source verification passed (${textFiles.length} content files, ${credentials.length} credentials).`);
