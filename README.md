@@ -93,7 +93,7 @@ Copy `.env.example` to `.env` locally, or set the same names in Vercel. All of t
 | `GEMINI_API_KEY`, `GEMINI_MODEL` | Ask the Atlas | Optional. Without a key, the assistant shows matching ledger entries instead. `GEMINI_MODEL` defaults to `gemini-3.8-flash`. A malformed id uses the default; an id Google reports as not found is retried once with the default, which that server instance then keeps using, and `/api/status` shows it under `assistant.fallbackFrom`. |
 | `AI_ASSISTANT_ENABLED` | Ask the Atlas | Set to `false` to switch AI off without removing the key. |
 | `PROVIDERS_DISABLED` | Every provider call | Optional comma-separated provider policy ids (for example `datacite,npm`) to switch off without a code change; `/api/status` lists them. |
-| `GITHUB_TOKEN` | Repository Evidence Graph | Optional; raises GitHub's rate limit. Use a token with public read access only. |
+| `GITHUB_TOKEN` | Repository Evidence Graph | Optional; raises GitHub's rate limit from 60 to 5,000 requests an hour. Use a fine-grained token with **Public repositories** access and no permissions. If GitHub rejects it (wrong or expired), the site carries on without it and logs a warning. |
 | `CROSSREF_MAILTO` | Citation tools | Optional contact address for Crossref's polite pool. |
 | `TRUST_PROXY` | Rate limits | Optional. Set to `1` or `true` when a reverse proxy sits in front of the server outside Vercel, so the client address comes from `X-Forwarded-For`. On Vercel (`VERCEL` is set) the proxy is always trusted. |
 | `LOG_LEVEL` | Logging | Optional pino level (`info` by default; `silent` in tests). |

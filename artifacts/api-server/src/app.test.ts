@@ -160,6 +160,19 @@ describe("POST /api/repository/analyze", () => {
     expect(JSON.stringify(body)).not.toContain("ghp_test");
   });
 
+  it("keeps working without the token once GitHub rejects it", async () => {
+    const base = github();
+    const { post, calls } = await start(
+      (url, init) => ((init.headers as Record<string, string>).Authorization ? json({ message: "Bad credentials" }, 401) : base(url, init)),
+      { GITHUB_TOKEN: "ghp_expired" },
+    );
+    const res = await post("/api/repository/analyze", { owner: "octo", repo: "demo" });
+    expect(res.status).toBe(200);
+    expect((await res.json()).coverage.overview).toBe("observed");
+    // One rejected call, then every call goes out without the token.
+    expect(calls.filter((c) => (c.init.headers as Record<string, string>).Authorization)).toHaveLength(1);
+  });
+
   it("serves repeats from cache, then revalidates with the ETag", async () => {
     const clock = { now: NOW };
     let overviewCalls = 0;

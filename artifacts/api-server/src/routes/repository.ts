@@ -14,6 +14,7 @@ import { PROVIDER_POLICIES } from "@workspace/proof-atlas-core/providers/policie
 import { LruCache } from "../lib/cache";
 import type { Deps } from "../lib/deps";
 import { clientKey, providerUnavailable, providerUserAgent, requireJson, str, tooMany, unavailable } from "../lib/http";
+import { logger } from "../lib/logger";
 import { EgressError, ProviderUnavailable, rateLimitSignal, type CallTier, type ProviderClient } from "../lib/providers";
 import { createRateLimiter } from "../lib/rate-limit";
 
@@ -56,6 +57,8 @@ export function createRepositoryRouter(deps: Deps, providers: ProviderClient): I
   const dependencyLimited = createRateLimiter({ limit: 10, windowMs: 60_000 });
   const cache = new LruCache<SectionPayload>(400, CACHE_BYTES);
   const staleMs = (policy.staleIfErrorSeconds ?? 0) * 1_000;
+  // Set once GitHub rejects GITHUB_TOKEN (wrong or expired); calls then go out without it.
+  let tokenRejected = false;
 
   async function githubGet(path: string, tier: CallTier = "core"): Promise<Fetched> {
     const now = deps.now();
@@ -72,7 +75,7 @@ export function createRepositoryRouter(deps: Deps, providers: ProviderClient): I
       "X-GitHub-Api-Version": "2022-11-28",
       "User-Agent": providerUserAgent(),
     };
-    const token = deps.env.GITHUB_TOKEN?.trim();
+    const token = tokenRejected ? undefined : deps.env.GITHUB_TOKEN?.trim();
     if (token) headers.Authorization = `Bearer ${token}`;
     if (cached?.etag) headers["If-None-Match"] = cached.etag;
 
@@ -96,6 +99,12 @@ export function createRepositoryRouter(deps: Deps, providers: ProviderClient): I
       return stale(reason);
     }
 
+    // A rejected token would fail every call; anonymous access still works at GitHub's lower limit.
+    if (response.status === 401 && token) {
+      tokenRejected = true;
+      logger.warn({ provider: "github" }, "GitHub rejected GITHUB_TOKEN (wrong or expired); continuing without it. Replace the token in Vercel.");
+      return githubGet(path, tier);
+    }
     if (response.status === 304 && cached) {
       cache.set(path, { ...cached, storedAt: now });
       return { payload: cached.value, cache: "hit", storedAt: now };
