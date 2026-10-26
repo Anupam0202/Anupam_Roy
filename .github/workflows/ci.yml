@@ -37,12 +37,6 @@ jobs:
         env:
           PAGE_WEIGHTS_OUT: page-weights.txt
       - run: pnpm run audit:prod
-      - if: matrix.node == '24'
-        run: pnpm --filter @workspace/proof-atlas exec playwright install --with-deps chromium
-      - if: matrix.node == '24'
-        run: pnpm --filter @workspace/proof-atlas exec playwright test --project=chromium
-        env:
-          CI: "true"
       - if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -50,19 +44,17 @@ jobs:
           path: page-weights.txt
           retention-days: 7
           if-no-files-found: ignore
-      - if: always() && matrix.node == '24'
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: artifacts/proof-atlas/playwright-report
-          retention-days: 7
-          if-no-files-found: ignore
 
-  webkit:
+  e2e:
+    name: e2e (${{ matrix.browser }})
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    # The official image ships WebKit and its system libraries for this Playwright
-    # version, so no apt install runs (it stalled on slow package mirrors).
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    # The official image ships the browsers and their system libraries for this
+    # Playwright version, so no apt install runs (it stalled on slow package mirrors).
     container:
       image: mcr.microsoft.com/playwright:v1.63.0-noble
     steps:
@@ -74,13 +66,13 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm run build
-      - run: pnpm --filter @workspace/proof-atlas exec playwright test --project=webkit
+      - run: pnpm --filter @workspace/proof-atlas exec playwright test --project=${{ matrix.browser }}
         env:
           CI: "true"
       - if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-webkit
+          name: playwright-report-${{ matrix.browser }}
           path: artifacts/proof-atlas/playwright-report
           retention-days: 7
           if-no-files-found: ignore
